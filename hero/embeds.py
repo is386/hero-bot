@@ -5,7 +5,7 @@ from discord import Embed
 from hero import cmd_database, meme, url
 from hero.embed_model import EmbedModel
 
-embed_color = 10170673
+embed_color = 16765210
 
 
 def create_embed(embedModel: EmbedModel):

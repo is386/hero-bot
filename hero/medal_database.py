@@ -40,7 +40,8 @@ def select_all(db: Connection) -> List:
         counts[row[0]] = row[1]
 
     counts = {k: v for k, v in sorted(
-        counts.items(), key=lambda item: item[1])}
+        counts.items(), key=lambda item: item[1], reverse=True)}
+    
     return counts
 
 

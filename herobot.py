@@ -96,7 +96,7 @@ async def give_medal(ctx: commands.Context, *args):
     await ctx.send(medals_msg.format(args[0], c))
 
 
-@bot.command(name="removemedal", aliases=["rmmedal", "rmvmedal"])
+@bot.command(name="removemedal")
 @is_owner()
 async def remove_medal(ctx: commands.Context, *args):
     if len(args) < 1:

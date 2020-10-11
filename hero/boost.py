@@ -5,9 +5,6 @@ from discord import Member
 from discord.ext import commands
 
 
-top10_msg: str = "**Top 10 Herocord Boosters**```{}```"
-
-
 def get_boosters(ctx: commands.Context):
     today: datetime = datetime.today()
     boosters: List[Member] = ctx.guild.premium_subscribers

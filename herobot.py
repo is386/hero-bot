@@ -5,7 +5,7 @@ from discord import Game, Embed, Message
 from discord.ext import commands
 
 from secret import token
-from hero import embeds, boost, cmd_database, info, meme, url, errors
+from hero import embeds, boost, cmd_database, info, meme, url, errors, medal_database
 from hero.embed_model import EmbedModel
 
 prefix: str = "?"
@@ -18,7 +18,8 @@ boost_msg: str = "What's up booster. Imagine not being a booster"
 top10_msg: str = "**Top 10 Herocord Boosters**```{}```"
 cmd_msg: str = "I {} the **?{}** command"
 add_meme_msg: str = "I added this new meme"
-
+medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
+medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
 
 bot: commands.Bot = commands.Bot(
     command_prefix=prefix,
@@ -51,7 +52,7 @@ async def send_help(ctx: commands.Context, *args):
     await ctx.send(embed=embed)
 
 
-@bot.command(name="boosters")
+@bot.command(name="boostboard")
 async def send_leaderboard(ctx: commands.Context):
     boosters: dict = boost.get_boosters(ctx)
     if len(boosters) == 0:
@@ -68,6 +69,89 @@ async def send_funny_boost(ctx: commands.Context):
         await ctx.send(boost_msg)
     else:
         await ctx.message.add_reaction(dab_emote)
+
+
+@bot.command(name="givemedal")
+@is_owner()
+async def give_medal(ctx: commands.Context, *args):
+    if len(args) < 1:
+        await ctx.send(errors.give_medal_name)
+        return
+
+    try:
+        user: int = int(args[0][3:len(args[0]) - 1])
+    except ValueError:
+        await ctx.send(errors.bad_name)
+        return
+
+    medal_db: Connection = medal_database.connect_to_db()
+    c: int = 1
+
+    if medal_database.user_exists(medal_db, user):
+        c = medal_database.select_count(medal_db, user) + 1
+        medal_database.update_count(medal_db, user, c)
+    else:
+        medal_database.insert_count(medal_db, user)
+
+    await ctx.send(medals_msg.format(args[0], c))
+
+
+@bot.command(name="removemedal", aliases=["rmmedal", "rmvmedal"])
+@is_owner()
+async def remove_medal(ctx: commands.Context, *args):
+    if len(args) < 1:
+        await ctx.send(errors.rm_medal_name)
+        return
+
+    try:
+        user: int = int(args[0][3:len(args[0]) - 1])
+    except ValueError:
+        await ctx.send(errors.bad_name)
+        return
+
+    medal_db: Connection = medal_database.connect_to_db()
+    c: int = medal_database.select_count(medal_db, user)
+    if c:
+        c -= 1
+        medal_database.update_count(medal_db, user, c)
+
+    await ctx.send(medals_msg.format(args[0], c))
+
+
+@bot.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
+async def get_medals_list(ctx: commands.Context, *args):
+    medal_db: Connection = medal_database.connect_to_db()
+    medal_dict: dict = medal_database.select_all(medal_db)
+    new_dict: dict = {}
+    for user_id in medal_dict.keys():
+        user = await bot.fetch_user(user_id)
+        new_dict[user.name] = medal_dict[user_id]
+    c: int = 1
+    s: str = ""
+
+    for k in new_dict.keys():
+        s += "{:}. {: <10} {}\n".format(c, k, new_dict[k])
+        c += 1
+
+    await ctx.send(medal_board_msg.format(s))
+
+
+@bot.command(name="medals", aliases=["minimedals", "medal"])
+async def get_medals(ctx: commands.Context, *args):
+    if len(args) < 1:
+        user: int = ctx.author.id
+        mention: str = ctx.author.mention
+    else:
+        try:
+            user: int = int(args[0][3:len(args[0]) - 1])
+            mention = args[0]
+        except ValueError:
+            await ctx.send(errors.bad_name)
+            return
+
+    medal_db: Connection = medal_database.connect_to_db()
+    c: int = medal_database.select_count(medal_db, user)
+    await ctx.send(medals_msg.format(mention, c))
 
 
 @bot.command(name="addcommand", aliases=["addcmd"])

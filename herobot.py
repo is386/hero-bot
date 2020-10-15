@@ -71,7 +71,7 @@ async def send_funny_boost(ctx: commands.Context):
         await ctx.message.add_reaction(dab_emote)
 
 
-@bot.command(name="givemedal")
+@bot.command(name="givemedal", aliases=["addmedal"])
 @is_owner()
 async def give_medal(ctx: commands.Context, *args):
     if len(args) < 1:
@@ -79,7 +79,7 @@ async def give_medal(ctx: commands.Context, *args):
         return
 
     try:
-        user: int = int(args[0][3:len(args[0]) - 1])
+        user: int = int(''.join(i for i in args[0] if i.isalnum()))
     except ValueError:
         await ctx.send(errors.bad_name)
         return
@@ -104,13 +104,14 @@ async def remove_medal(ctx: commands.Context, *args):
         return
 
     try:
-        user: int = int(args[0][3:len(args[0]) - 1])
+        user: int = int(''.join(i for i in args[0] if i.isalnum()))
     except ValueError:
         await ctx.send(errors.bad_name)
         return
 
     medal_db: Connection = medal_database.connect_to_db()
     c: int = medal_database.select_count(medal_db, user)
+    
     if c:
         c -= 1
         medal_database.update_count(medal_db, user, c)
@@ -123,14 +124,21 @@ async def get_medals_list(ctx: commands.Context, *args):
     medal_db: Connection = medal_database.connect_to_db()
     medal_dict: dict = medal_database.select_all(medal_db)
     new_dict: dict = {}
+
     for user_id in medal_dict.keys():
-        user = await bot.fetch_user(user_id)
-        new_dict[user.name] = medal_dict[user_id]
+        if medal_dict[user_id] != 0:
+            user = await bot.fetch_user(user_id)
+            new_dict[user.name] = medal_dict[user_id]
+
+    if len(new_dict) == 0:
+        await ctx.send("No clout to be had here")
+        return
+
     c: int = 1
     s: str = ""
 
     for k in new_dict.keys():
-        s += "{:}. {: <10} {}\n".format(c, k, new_dict[k])
+        s += "{:}. {: <20} {}\n".format(c, k, new_dict[k])
         c += 1
 
     await ctx.send(medal_board_msg.format(s))
@@ -143,7 +151,7 @@ async def get_medals(ctx: commands.Context, *args):
         mention: str = ctx.author.mention
     else:
         try:
-            user: int = int(args[0][3:len(args[0]) - 1])
+            user: int = int(''.join(i for i in args[0] if i.isalnum()))
             mention = args[0]
         except ValueError:
             await ctx.send(errors.bad_name)

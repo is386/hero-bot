@@ -7,16 +7,21 @@ medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
 medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
 
 
+def parse_mention(mention: str):
+    try:
+        return int(''.join(i for i in mention if i.isalnum()))
+    except ValueError:
+        return None
+
+
 async def give_medal(ctx: commands.Context, args: List):
     if len(args) < 1:
         await ctx.send("That's not right. The format is `?givemedal <mention>`.")
         return
 
-    try:
-        user: int = int(''.join(i for i in args[0] if i.isalnum()))
-    except ValueError:
+    user: int = parse_mention(args[0])
+    if not user:
         await ctx.send("That is a bad user id. Please mention the user with the command.")
-        return
 
     medal_db: Connection = medal_database.connect_to_db()
     c: int = 1
@@ -35,11 +40,9 @@ async def remove_medal(ctx: commands.Context, args: List):
         await ctx.send("That's not right. The format is `?removemedal < mention >`.")
         return
 
-    try:
-        user: int = int(''.join(i for i in args[0] if i.isalnum()))
-    except ValueError:
+    user: int = parse_mention(args[0])
+    if not user:
         await ctx.send("That is a bad user id. Please mention the user with the command.")
-        return
 
     medal_db: Connection = medal_database.connect_to_db()
     c: int = medal_database.select_count(medal_db, user)
@@ -80,12 +83,10 @@ async def send_medals(ctx: commands.Context, args: List):
         user: int = ctx.author.id
         mention: str = ctx.author.mention
     else:
-        try:
-            user: int = int(''.join(i for i in args[0] if i.isalnum()))
-            mention = args[0]
-        except ValueError:
+        user: int = parse_mention(args[0])
+        if not user:
             await ctx.send("That is a bad user id. Please mention the user with the command.")
-            return
+        mention: str = args[0]
 
     medal_db: Connection = medal_database.connect_to_db()
     c: int = medal_database.select_count(medal_db, user)

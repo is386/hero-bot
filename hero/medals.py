@@ -14,12 +14,8 @@ def parse_mention(mention: str):
         return None
 
 
-async def give_medal(ctx: commands.Context, args: List):
-    if len(args) < 1:
-        await ctx.send("That's not right. The format is `?givemedal <mention>`.")
-        return
-
-    user: int = parse_mention(args[0])
+async def give_medal(ctx: commands.Context, mention: str):
+    user: int = parse_mention(mention)
     if not user:
         await ctx.send("That is a bad user id. Please mention the user with the command.")
 
@@ -32,15 +28,11 @@ async def give_medal(ctx: commands.Context, args: List):
     else:
         medal_database.insert_count(medal_db, user)
 
-    await ctx.send(medals_msg.format(args[0], c))
+    await ctx.send(medals_msg.format(mention, c))
 
 
-async def remove_medal(ctx: commands.Context, args: List):
-    if len(args) < 1:
-        await ctx.send("That's not right. The format is `?removemedal < mention >`.")
-        return
-
-    user: int = parse_mention(args[0])
+async def remove_medal(ctx: commands.Context, mention: str):
+    user: int = parse_mention(mention)
     if not user:
         await ctx.send("That is a bad user id. Please mention the user with the command.")
 
@@ -51,10 +43,10 @@ async def remove_medal(ctx: commands.Context, args: List):
         c -= 1
         medal_database.update_count(medal_db, user, c)
 
-    await ctx.send(medals_msg.format(args[0], c))
+    await ctx.send(medals_msg.format(mention, c))
 
 
-async def send_medalboard(bot: commands.Bot, ctx: commands.Context, args: List):
+async def send_medalboard(bot: commands.Bot, ctx: commands.Context):
     medal_db: Connection = medal_database.connect_to_db()
     medal_dict: dict = medal_database.select_all(medal_db)
     new_dict: dict = {}

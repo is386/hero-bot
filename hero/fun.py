@@ -25,14 +25,12 @@ async def flip_coin(ctx: commands.Context):
     await ctx.send(embed=embed)
 
 
-async def add_meme(ctx: commands.Context, args):
-    if len(args) == 0:
-        await ctx.send("You did not provide a meme image link.")
-    elif url.is_image(args[0]):
+async def add_meme(ctx: commands.Context, meme: str):
+    if url.is_image(meme):
         with open(meme_path, "a") as f:
-            f.write("\n" + args[0])
+            f.write("\n" + meme)
         embed_model: EmbedModel = EmbedModel("NewMeme")
-        embed_model.set_image(args[0])
+        embed_model.set_image(meme)
         embed: Embed = embeds.create_embed(embed_model)
         await ctx.send(embed=embed)
         await ctx.send(add_meme_msg)

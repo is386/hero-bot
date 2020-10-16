@@ -64,19 +64,19 @@ async def coin(ctx: commands.Context):
 
 @bot.command(name="givemedal", aliases=["addmedal"])
 @commands.has_permissions(administrator=True)
-async def give_medal(ctx: commands.Context, *args):
-    await medals.give_medal(ctx, args)
+async def give_medal(ctx: commands.Context, mention: str):
+    await medals.give_medal(ctx, mention)
 
 
 @bot.command(name="removemedal")
 @commands.has_permissions(administrator=True)
-async def remove_medal(ctx: commands.Context, *args):
-    await medals.remove_medal(ctx, args)
+async def remove_medal(ctx: commands.Context, mention: str):
+    await medals.remove_medal(ctx, mention)
 
 
 @bot.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
-async def medalboard(ctx: commands.Context, *args):
-    await medals.send_medalboard(bot, ctx, args)
+async def medalboard(ctx: commands.Context):
+    await medals.send_medalboard(bot, ctx)
 
 
 @bot.command(name="medals", aliases=["minimedals", "medal"])
@@ -92,14 +92,14 @@ async def add_cmd(ctx: commands.Context, *args):
 
 @bot.command(name="removecommand", aliases=["removecmd"])
 @commands.has_permissions(administrator=True)
-async def remove_cmd(ctx: commands.Context, *args):
-    await custom.rm_cmd(ctx, args)
+async def remove_cmd(ctx: commands.Context, cmd_name: str):
+    await custom.rm_cmd(ctx, cmd_name)
 
 
 @bot.command(name="addmeme")
 @commands.has_permissions(ban_members=True)
-async def add_meme(ctx: commands.Context, *args):
-    await fun.add_meme(ctx, args)
+async def add_meme(ctx: commands.Context, meme_link: str):
+    await fun.add_meme(ctx, meme_link)
 
 
 @bot.command(name="slowmode", aliases=["funmode"])
@@ -122,7 +122,8 @@ async def slow_mode(ctx: commands.Context, seconds: int):
 async def perm_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
-
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(error)
 
 # @kick.error
 # async def ban_error(ctx: commands.Context, error: commands.CommandError):

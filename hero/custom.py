@@ -9,7 +9,7 @@ cmd_msg: str = "I {} the **?{}** command."
 
 async def add_cmd(ctx: commands.Context, args):
     if len(args) < 2:
-        await ctx.send("That's not right. The format is `?addcmd <type> <name> <text>`.")
+        await ctx.send("That's not right. The format is `?addcmd <name> <text>` or `?addcmd embed <name> <fields>`.")
         return
 
     if args[0] == "embed":
@@ -57,17 +57,13 @@ async def add_text(ctx: commands.Context, name: str, text: str):
     await ctx.send(text)
 
 
-async def rm_cmd(ctx: commands.Context, args):
+async def rm_cmd(ctx: commands.Context, cmd: str):
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
-    if len(args) == 0:
-        await ctx.send("That's not right. You didn't give the command name.")
-    else:
-        cmd: str = args[0]
-        if cmd in cmd_database.select_all_custom_cmds(cmd_db):
-            if cmd in cmd_database.select_all_text_cmds(cmd_db):
-                cmd_database.remove_text_cmd(cmd, cmd_db)
-            else:
-                cmd_database.remove_embed_cmd(cmd, cmd_db)
-            await ctx.send(cmd_msg.format("removed", cmd))
+    if cmd in cmd_database.select_all_custom_cmds(cmd_db):
+        if cmd in cmd_database.select_all_text_cmds(cmd_db):
+            cmd_database.remove_text_cmd(cmd, cmd_db)
         else:
-            await ctx.send("You cannot remove that command.")
+            cmd_database.remove_embed_cmd(cmd, cmd_db)
+        await ctx.send(cmd_msg.format("removed", cmd))
+    else:
+        await ctx.send("You cannot remove that command.")

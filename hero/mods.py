@@ -1,6 +1,6 @@
 from discord import Message, Embed, Member
 from discord.ext import commands
-from hero import errors, embeds, reactions
+from hero import embeds, reactions
 from hero.embed_model import EmbedModel
 
 
@@ -15,19 +15,19 @@ async def slow_mode(ctx: commands.Context, seconds: int):
 
 async def kick(ctx: commands.Context, args):
     if len(args) < 2:
-        await ctx.send(errors.bad_kick)
+        await ctx.send("That's not right. The format is `?kick <mention> <reason>`.")
         return
 
     try:
         user_id: int = int(''.join(i for i in args[0] if i.isalnum()))
     except ValueError:
-        await ctx.send(errors.bad_name)
+        await ctx.send("That is a bad user id. Please mention the user with the command.")
         return
 
     reason: str = " ".join(args[1:])
     user: Member = ctx.guild.get_member(user_id)
     if not user:
-        await ctx.send(errors.no_user)
+        await ctx.send("That user does not exist.")
 
     model: EmbedModel = EmbedModel("kick")
     model.set_title("Kick {}".format(user))

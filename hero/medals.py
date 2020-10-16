@@ -1,7 +1,7 @@
 from typing import List
 from sqlite3 import Connection
 from discord.ext import commands
-from hero import medal_database, errors
+from hero import medal_database
 
 medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
 medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
@@ -9,13 +9,13 @@ medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
 
 async def give_medal(ctx: commands.Context, args: List):
     if len(args) < 1:
-        await ctx.send(errors.give_medal_name)
+        await ctx.send("That's not right. The format is `?givemedal <mention>`.")
         return
 
     try:
         user: int = int(''.join(i for i in args[0] if i.isalnum()))
     except ValueError:
-        await ctx.send(errors.bad_name)
+        await ctx.send("That is a bad user id. Please mention the user with the command.")
         return
 
     medal_db: Connection = medal_database.connect_to_db()
@@ -32,13 +32,13 @@ async def give_medal(ctx: commands.Context, args: List):
 
 async def remove_medal(ctx: commands.Context, args: List):
     if len(args) < 1:
-        await ctx.send(errors.rm_medal_name)
+        await ctx.send("That's not right. The format is `?removemedal < mention >`.")
         return
 
     try:
         user: int = int(''.join(i for i in args[0] if i.isalnum()))
     except ValueError:
-        await ctx.send(errors.bad_name)
+        await ctx.send("That is a bad user id. Please mention the user with the command.")
         return
 
     medal_db: Connection = medal_database.connect_to_db()
@@ -84,7 +84,7 @@ async def send_medals(ctx: commands.Context, args: List):
             user: int = int(''.join(i for i in args[0] if i.isalnum()))
             mention = args[0]
         except ValueError:
-            await ctx.send(errors.bad_name)
+            await ctx.send("That is a bad user id. Please mention the user with the command.")
             return
 
     medal_db: Connection = medal_database.connect_to_db()

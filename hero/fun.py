@@ -3,7 +3,7 @@ from random import choice, seed, randint
 from discord import Embed
 from discord.ext import commands
 
-from hero import embeds, url, errors
+from hero import embeds, url
 from hero.embed_model import EmbedModel
 
 meme_path: str = "databases/memes"
@@ -27,7 +27,7 @@ async def flip_coin(ctx: commands.Context):
 
 async def add_meme(ctx: commands.Context, args):
     if len(args) == 0:
-        await ctx.send(errors.no_meme_given)
+        await ctx.send("You did not provide a meme image link.")
     elif url.is_image(args[0]):
         with open(meme_path, "a") as f:
             f.write("\n" + args[0])
@@ -37,7 +37,7 @@ async def add_meme(ctx: commands.Context, args):
         await ctx.send(embed=embed)
         await ctx.send(add_meme_msg)
     else:
-        await ctx.send(errors.not_img_url)
+        await ctx.send("That is not a valid image url.")
 
 
 def get_random_meme():

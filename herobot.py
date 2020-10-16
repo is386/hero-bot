@@ -5,7 +5,7 @@ from discord import Game, Embed, Message, Intents
 from discord.ext import commands
 
 from secret import token
-from hero import embeds, boost, cmd_database, info, fun, errors, medals, custom, mods
+from hero import embeds, boost, cmd_database, info, fun, medals, custom, mods
 from hero.embed_model import EmbedModel
 
 prefix: str = "?"
@@ -121,13 +121,13 @@ async def slow_mode(ctx: commands.Context, seconds: int):
 @slow_mode.error
 async def perm_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(errors.no_perm.format(ctx.author.mention))
+        await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
 
 
 # @kick.error
 # async def ban_error(ctx: commands.Context, error: commands.CommandError):
 #     if isinstance(error, commands.MissingPermissions):
-#         await ctx.send(errors.no_perm.format(ctx.author.mention))
+#         await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
 #     else:
 #         await ctx.send("Not even I have the power to do that")
 

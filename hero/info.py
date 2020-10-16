@@ -5,7 +5,7 @@ from discord import Embed
 from discord.ext.commands import Context, Bot
 
 from hero.embed_model import EmbedModel
-from hero import cmd_database, errors, embeds
+from hero import cmd_database, embeds
 
 
 async def send_info(bot: Bot, ctx: Context, args):
@@ -14,12 +14,12 @@ async def send_info(bot: Bot, ctx: Context, args):
         embed_model: EmbedModel = get_full_info()
         embed_model.set_thumbnail(bot.user.avatar_url)
     elif args[0] in cmd_database.select_all_custom_cmds(cmd_db):
-        await ctx.send(errors.no_custom_info)
+        await ctx.send("I do not have info on custom commands.")
         return
     elif args[0] in cmd_database.select_all_cmds(cmd_db):
         embed_model: EmbedModel = get_cmd_info(args[0])
     else:
-        await ctx.send(errors.invalid_cmd)
+        await ctx.send("That command does not exist.")
         return
 
     embed: Embed = embeds.create_embed(embed_model)

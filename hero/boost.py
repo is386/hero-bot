@@ -1,10 +1,7 @@
 from typing import List
 from datetime import datetime, timedelta
-
 from discord import Member
 from discord.ext import commands
-
-from hero import errors
 
 dab_emote: str = "<:HeroDab:619944332140478464>"
 boost_msg: str = "What's up booster. Imagine not being a booster"
@@ -14,7 +11,7 @@ top10_msg: str = "**Top 10 Herocord Boosters**```{}```"
 async def send_boostboard(ctx: commands.Context):
     boosters: dict = get_boosters(ctx)
     if len(boosters) == 0:
-        await ctx.send(errors.no_boosts)
+        await ctx.send("This server has no boosts.")
         return
 
     msg: str = build_leaderboard(boosters)

@@ -2,7 +2,7 @@ from typing import List
 from sqlite3 import Connection
 from random import randint
 
-from discord import Game, Embed, Message
+from discord import Game, Embed, Message, Intents
 from discord.ext import commands
 
 from secret import token
@@ -11,8 +11,6 @@ from hero.embed_model import EmbedModel
 
 prefix: str = "?"
 status_msg: str = "Type ?info"
-admin_role: int = 587026215123288064
-welcome_chan: int = 509819835874541570
 
 dab_emote: str = "<:HeroDab:619944332140478464>"
 boost_msg: str = "What's up booster. Imagine not being a booster"
@@ -22,19 +20,14 @@ add_meme_msg: str = "I added this new meme"
 medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
 medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
 
+intents = Intents.default()
+intents.members = True
+
 bot: commands.Bot = commands.Bot(
     command_prefix=prefix,
     help_command=None,
-    activity=Game(status_msg))
-
-
-def is_admin():
-    async def predicate(ctx):
-        for role in ctx.author.roles:
-            if role.id == admin_role:
-                return True
-        return False
-    return commands.check(predicate)
+    activity=Game(status_msg),
+    intents=intents)
 
 
 @bot.command(name="info")
@@ -90,7 +83,7 @@ async def coin(ctx: commands.Context, *args):
 
 
 @bot.command(name="givemedal", aliases=["addmedal"])
-@is_admin()
+@commands.has_permissions(administrator=True)
 async def give_medal(ctx: commands.Context, *args):
     if len(args) < 1:
         await ctx.send(errors.give_medal_name)
@@ -115,7 +108,7 @@ async def give_medal(ctx: commands.Context, *args):
 
 
 @bot.command(name="removemedal")
-@is_admin()
+@commands.has_permissions(administrator=True)
 async def remove_medal(ctx: commands.Context, *args):
     if len(args) < 1:
         await ctx.send(errors.rm_medal_name)
@@ -181,7 +174,7 @@ async def get_medals(ctx: commands.Context, *args):
 
 
 @bot.command(name="addcommand", aliases=["addcmd"])
-@is_admin()
+@commands.has_permissions(administrator=True)
 async def add_cmd(ctx: commands.Context, *args):
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
     if len(args) < 2:
@@ -225,7 +218,7 @@ async def add_cmd(ctx: commands.Context, *args):
 
 
 @bot.command(name="removecommand", aliases=["removecmd"])
-@is_admin()
+@commands.has_permissions(administrator=True)
 async def remove_cmd(ctx: commands.Context, *args):
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
     if len(args) == 0:
@@ -243,7 +236,7 @@ async def remove_cmd(ctx: commands.Context, *args):
 
 
 @bot.command(name="addmeme")
-@is_admin()
+@commands.has_permissions(ban_members=True)
 async def add_meme(ctx: commands.Context, *args):
     if len(args) == 0:
         await ctx.send(errors.no_meme_given)
@@ -256,6 +249,17 @@ async def add_meme(ctx: commands.Context, *args):
         await ctx.send(add_meme_msg)
     else:
         await ctx.send(errors.not_img_url)
+
+
+@bot.command(name="slowmode", aliases=["funmode"])
+@commands.has_permissions(manage_channels=True)
+async def slow_mode(ctx, seconds: int):
+    if seconds < 0:
+        seconds = 0
+    elif seconds > 21600:
+        seconds = 21600
+    await ctx.channel.edit(slowmode_delay=seconds)
+    await ctx.send("{} second funmode has been activated".format(seconds))
 
 
 @bot.event
@@ -286,10 +290,9 @@ async def on_message(msg: Message):
 @add_meme.error
 @give_medal.error
 @remove_medal.error
+@slow_mode.error
 async def cmd_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(errors.not_admin.format(ctx.author.mention))
-    else:
-        await ctx.send(errors.not_mod.format(ctx.author.mention))
+        await ctx.send(errors.no_perm.format(ctx.author.mention))
 
 bot.run(token)

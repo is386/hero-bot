@@ -1,5 +1,5 @@
 not_admin: str = "{} you need the permission **Administrator** to use that command."
-not_owner: str = "{} only **Zector** and **1nder** can use that command."
+not_mod: str = "{} only **Admins/Mods** can use that command."
 no_boosts: str = "No one boosted this server."
 invalid_cmd: str = "That command does not exist "
 add_cmd_fmt: str = "That's not right. The format is `?addcmd <type> <name> <text>` "

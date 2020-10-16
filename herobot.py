@@ -1,5 +1,6 @@
 from typing import List
 from sqlite3 import Connection
+from random import randint
 
 from discord import Game, Embed, Message
 from discord.ext import commands
@@ -13,7 +14,6 @@ status_msg: str = "Type ?info"
 owners: List = [139148414507155457, 177830256294494209]
 
 dab_emote: str = "<:HeroDab:619944332140478464>"
-
 boost_msg: str = "What's up booster. Imagine not being a booster"
 top10_msg: str = "**Top 10 Herocord Boosters**```{}```"
 cmd_msg: str = "I {} the **?{}** command"
@@ -34,7 +34,7 @@ def is_owner():
 
 
 @bot.command(name="info")
-async def send_help(ctx: commands.Context, *args):
+async def send_info(ctx: commands.Context, *args):
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
     if len(args) == 0:
         embed_model: EmbedModel = info.get_full_info()
@@ -69,6 +69,20 @@ async def send_funny_boost(ctx: commands.Context):
         await ctx.send(boost_msg)
     else:
         await ctx.message.add_reaction(dab_emote)
+
+
+@bot.command(name="coin", aliases=["other", "command", "names"])
+async def coin(ctx: commands.Context, *args):
+    model: EmbedModel = EmbedModel("coin")
+    model.set_title("HEADS")
+    model.set_image("https://i.imgur.com/dTNbMle.png")
+
+    if randint(1, 100) % 2 != 0:
+        model.set_title("TAILS")
+        model.set_image("https://i.imgur.com/Suza17V.png")
+
+    embed: Embed = embeds.create_embed(model)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name="givemedal", aliases=["addmedal"])
@@ -111,7 +125,7 @@ async def remove_medal(ctx: commands.Context, *args):
 
     medal_db: Connection = medal_database.connect_to_db()
     c: int = medal_database.select_count(medal_db, user)
-    
+
     if c:
         c -= 1
         medal_database.update_count(medal_db, user, c)
@@ -138,7 +152,7 @@ async def get_medals_list(ctx: commands.Context, *args):
     s: str = ""
 
     for k in new_dict.keys():
-        s += "{:}. {: <20} {}\n".format(c, k, new_dict[k])
+        s += "{:}. {: <32} {}\n".format(c, k, new_dict[k])
         c += 1
 
     await ctx.send(medal_board_msg.format(s))
@@ -240,16 +254,6 @@ async def add_meme(ctx: commands.Context, *args):
         await ctx.send(errors.not_img_url)
 
 
-@add_cmd.error
-@remove_cmd.error
-@add_meme.error
-async def cmd_error(ctx: commands.Context, error: commands.CommandError):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send(errors.not_admin.format(ctx.author.mention))
-    else:
-        await ctx.send(errors.not_owner.format(ctx.author.mention))
-
-
 @bot.event
 async def on_message(msg: Message):
     if bot.user == msg.author or msg.content[0] != prefix:
@@ -271,5 +275,17 @@ async def on_message(msg: Message):
         return
 
     await bot.process_commands(msg)
+
+
+@add_cmd.error
+@remove_cmd.error
+@add_meme.error
+@give_medal.error
+@remove_medal.error
+async def cmd_error(ctx: commands.Context, error: commands.CommandError):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(errors.not_admin.format(ctx.author.mention))
+    else:
+        await ctx.send(errors.not_owner.format(ctx.author.mention))
 
 bot.run(token)

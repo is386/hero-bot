@@ -1,28 +1,17 @@
 from typing import List
 from sqlite3 import Connection
-from random import randint
 
 from discord import Game, Embed, Message, Intents
 from discord.ext import commands
 
 from secret import token
-from hero import embeds, boost, cmd_database, info, meme, url, errors, medal_database
+from hero import embeds, boost, cmd_database, info, fun, errors, medals, custom, mods
 from hero.embed_model import EmbedModel
 
 prefix: str = "?"
 status_msg: str = "Type ?info"
-
-dab_emote: str = "<:HeroDab:619944332140478464>"
-boost_msg: str = "What's up booster. Imagine not being a booster"
-top10_msg: str = "**Top 10 Herocord Boosters**```{}```"
-cmd_msg: str = "I {} the **?{}** command"
-add_meme_msg: str = "I added this new meme"
-medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
-medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
-
 intents = Intents.default()
 intents.members = True
-
 bot: commands.Bot = commands.Bot(
     command_prefix=prefix,
     help_command=None,
@@ -30,241 +19,9 @@ bot: commands.Bot = commands.Bot(
     intents=intents)
 
 
-@bot.command(name="info")
-async def send_info(ctx: commands.Context, *args):
-    cmd_db: Connection = cmd_database.connect_to_cmd_db()
-    if len(args) == 0:
-        embed_model: EmbedModel = info.get_full_info()
-        embed_model.set_thumbnail(bot.user.avatar_url)
-    elif args[0] in cmd_database.select_all_custom_cmds(cmd_db):
-        await ctx.send(errors.no_custom_info)
-        return
-    elif args[0] in cmd_database.select_all_cmds(cmd_db):
-        embed_model: EmbedModel = info.get_cmd_info(args[0])
-    else:
-        await ctx.send(errors.invalid_cmd)
-        return
-
-    embed: Embed = embeds.create_embed(embed_model)
-    await ctx.send(embed=embed)
-
-
-@bot.command(name="boostboard")
-async def send_leaderboard(ctx: commands.Context):
-    boosters: dict = boost.get_boosters(ctx)
-    if len(boosters) == 0:
-        await ctx.send(errors.no_boosts)
-        return
-
-    msg: str = boost.build_leaderboard(boosters)
-    await ctx.send(top10_msg.format(msg))
-
-
-@bot.command(name="boost")
-async def send_funny_boost(ctx: commands.Context):
-    if ctx.author in ctx.guild.premium_subscribers:
-        await ctx.send(boost_msg)
-    else:
-        await ctx.message.add_reaction(dab_emote)
-
-
-@bot.command(name="coin", aliases=["other", "command", "names"])
-async def coin(ctx: commands.Context, *args):
-    model: EmbedModel = EmbedModel("coin")
-    model.set_title("HEADS")
-    model.set_image("https://i.imgur.com/dTNbMle.png")
-
-    if randint(1, 100) % 2 != 0:
-        model.set_title("TAILS")
-        model.set_image("https://i.imgur.com/Suza17V.png")
-
-    embed: Embed = embeds.create_embed(model)
-    await ctx.send(embed=embed)
-
-
-@bot.command(name="givemedal", aliases=["addmedal"])
-@commands.has_permissions(administrator=True)
-async def give_medal(ctx: commands.Context, *args):
-    if len(args) < 1:
-        await ctx.send(errors.give_medal_name)
-        return
-
-    try:
-        user: int = int(''.join(i for i in args[0] if i.isalnum()))
-    except ValueError:
-        await ctx.send(errors.bad_name)
-        return
-
-    medal_db: Connection = medal_database.connect_to_db()
-    c: int = 1
-
-    if medal_database.user_exists(medal_db, user):
-        c = medal_database.select_count(medal_db, user) + 1
-        medal_database.update_count(medal_db, user, c)
-    else:
-        medal_database.insert_count(medal_db, user)
-
-    await ctx.send(medals_msg.format(args[0], c))
-
-
-@bot.command(name="removemedal")
-@commands.has_permissions(administrator=True)
-async def remove_medal(ctx: commands.Context, *args):
-    if len(args) < 1:
-        await ctx.send(errors.rm_medal_name)
-        return
-
-    try:
-        user: int = int(''.join(i for i in args[0] if i.isalnum()))
-    except ValueError:
-        await ctx.send(errors.bad_name)
-        return
-
-    medal_db: Connection = medal_database.connect_to_db()
-    c: int = medal_database.select_count(medal_db, user)
-
-    if c:
-        c -= 1
-        medal_database.update_count(medal_db, user, c)
-
-    await ctx.send(medals_msg.format(args[0], c))
-
-
-@bot.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
-async def get_medals_list(ctx: commands.Context, *args):
-    medal_db: Connection = medal_database.connect_to_db()
-    medal_dict: dict = medal_database.select_all(medal_db)
-    new_dict: dict = {}
-
-    for user_id in medal_dict.keys():
-        if medal_dict[user_id] != 0:
-            user = await bot.fetch_user(user_id)
-            new_dict[user.name] = medal_dict[user_id]
-
-    if len(new_dict) == 0:
-        await ctx.send("No clout to be had here")
-        return
-
-    c: int = 1
-    s: str = ""
-
-    for k in new_dict.keys():
-        s += "{:}. {: <32} {}\n".format(c, k, new_dict[k])
-        c += 1
-
-    await ctx.send(medal_board_msg.format(s))
-
-
-@bot.command(name="medals", aliases=["minimedals", "medal"])
-async def get_medals(ctx: commands.Context, *args):
-    if len(args) < 1:
-        user: int = ctx.author.id
-        mention: str = ctx.author.mention
-    else:
-        try:
-            user: int = int(''.join(i for i in args[0] if i.isalnum()))
-            mention = args[0]
-        except ValueError:
-            await ctx.send(errors.bad_name)
-            return
-
-    medal_db: Connection = medal_database.connect_to_db()
-    c: int = medal_database.select_count(medal_db, user)
-    await ctx.send(medals_msg.format(mention, c))
-
-
-@bot.command(name="addcommand", aliases=["addcmd"])
-@commands.has_permissions(administrator=True)
-async def add_cmd(ctx: commands.Context, *args):
-    cmd_db: Connection = cmd_database.connect_to_cmd_db()
-    if len(args) < 2:
-        await ctx.send(errors.add_cmd_fmt)
-        return
-
-    if args[0] == "embed":
-        name: str = args[1]
-        embed_model: EmbedModel = EmbedModel(name)
-        embed_model = embeds.parse_embed_msg(embed_model, ctx.message.content)
-        if name not in cmd_database.select_all_cmds(cmd_db):
-            cmd_database.insert_embed_cmd(embed_model, cmd_db)
-            await ctx.send(cmd_msg.format("created", name))
-        elif name in cmd_database.select_all_custom_cmds(cmd_db):
-            cmd_database.update_embed_cmd(embed_model, cmd_db)
-            await ctx.send(cmd_msg.format("updated", name))
-        else:
-            await ctx.send(errors.no_update_cmd)
-            return
-
-        embed: Embed = embeds.create_embed(embed_model)
-        await ctx.send(embed=embed)
-    else:
-        name: str = args[0]
-        text: str = " ".join(args[1:])
-        if name in cmd_database.select_all_embed_cmds(cmd_db):
-            await ctx.send(errors.wrong_cmd_type)
-            return
-        if name not in cmd_database.select_all_cmds(cmd_db):
-            cmd_database.insert_text_cmd(name, text, cmd_db)
-            await ctx.send(cmd_msg.format("created", name))
-        elif name in cmd_database.select_all_custom_cmds(cmd_db):
-            cmd_database.update_text_cmd(name, text, cmd_db)
-            await ctx.send(cmd_msg.format("updated", name))
-        else:
-            await ctx.send(errors.no_update_cmd)
-            return
-
-        text: str = cmd_database.select_text_cmd(name, cmd_db)
-        await ctx.send(text)
-
-
-@bot.command(name="removecommand", aliases=["removecmd"])
-@commands.has_permissions(administrator=True)
-async def remove_cmd(ctx: commands.Context, *args):
-    cmd_db: Connection = cmd_database.connect_to_cmd_db()
-    if len(args) == 0:
-        await ctx.send(errors.rm_cmd_fmt)
-    else:
-        cmd: str = args[0]
-        if cmd in cmd_database.select_all_custom_cmds(cmd_db):
-            if cmd in cmd_database.select_all_text_cmds(cmd_db):
-                cmd_database.remove_text_cmd(cmd, cmd_db)
-            else:
-                cmd_database.remove_embed_cmd(cmd, cmd_db)
-            await ctx.send(cmd_msg.format("removed", cmd))
-        else:
-            await ctx.send(errors.no_rm_cmd)
-
-
-@bot.command(name="addmeme")
-@commands.has_permissions(ban_members=True)
-async def add_meme(ctx: commands.Context, *args):
-    if len(args) == 0:
-        await ctx.send(errors.no_meme_given)
-    elif url.is_image(args[0]):
-        meme.add_meme(args[0])
-        embed_model: EmbedModel = EmbedModel("NewMeme")
-        embed_model.set_image(args[0])
-        embed: Embed = embeds.create_embed(embed_model)
-        await ctx.send(embed=embed)
-        await ctx.send(add_meme_msg)
-    else:
-        await ctx.send(errors.not_img_url)
-
-
-@bot.command(name="slowmode", aliases=["funmode"])
-@commands.has_permissions(manage_channels=True)
-async def slow_mode(ctx, seconds: int):
-    if seconds < 0:
-        seconds = 0
-    elif seconds > 21600:
-        seconds = 21600
-    await ctx.channel.edit(slowmode_delay=seconds)
-    await ctx.send("{} second funmode has been activated".format(seconds))
-
-
 @bot.event
 async def on_message(msg: Message):
-    if bot.user == msg.author or msg.content[0] != prefix:
+    if bot.user == msg.author or len(msg.content) == 0 or msg.content[0] != prefix:
         return
 
     cmd: str = msg.content.split()[0][1:]
@@ -285,14 +42,94 @@ async def on_message(msg: Message):
     await bot.process_commands(msg)
 
 
+@bot.command(name="info")
+async def cmd_info(ctx: commands.Context, *args):
+    await info.send_info(bot, ctx, args)
+
+
+@bot.command(name="boostboard")
+async def boostboard(ctx: commands.Context):
+    await boost.send_boostboard(ctx)
+
+
+@bot.command(name="boost")
+async def boost_msg(ctx: commands.Context):
+    await boost.send_boost_msg(ctx)
+
+
+@bot.command(name="coin")
+async def coin(ctx: commands.Context):
+    await fun.flip_coin(ctx)
+
+
+@bot.command(name="givemedal", aliases=["addmedal"])
+@commands.has_permissions(administrator=True)
+async def give_medal(ctx: commands.Context, *args):
+    await medals.give_medal(ctx, args)
+
+
+@bot.command(name="removemedal")
+@commands.has_permissions(administrator=True)
+async def remove_medal(ctx: commands.Context, *args):
+    await medals.remove_medal(ctx, args)
+
+
+@bot.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
+async def medalboard(ctx: commands.Context, *args):
+    await medals.send_medalboard(bot, ctx, args)
+
+
+@bot.command(name="medals", aliases=["minimedals", "medal"])
+async def get_medals(ctx: commands.Context, *args):
+    await medals.send_medals(ctx, args)
+
+
+@bot.command(name="addcommand", aliases=["addcmd"])
+@commands.has_permissions(administrator=True)
+async def add_cmd(ctx: commands.Context, *args):
+    await custom.add_cmd(ctx, args)
+
+
+@bot.command(name="removecommand", aliases=["removecmd"])
+@commands.has_permissions(administrator=True)
+async def remove_cmd(ctx: commands.Context, *args):
+    await custom.rm_cmd(ctx, args)
+
+
+@bot.command(name="addmeme")
+@commands.has_permissions(ban_members=True)
+async def add_meme(ctx: commands.Context, *args):
+    await fun.add_meme(ctx, args)
+
+
+@bot.command(name="slowmode", aliases=["funmode"])
+@commands.has_permissions(manage_channels=True)
+async def slow_mode(ctx: commands.Context, seconds: int):
+    await mods.slow_mode(ctx, seconds)
+
+
+# @bot.command(name="kick")
+# @commands.has_permissions(kick_members=True)
+# async def kick(ctx: commands.Context, *args):
+#     await mods.kick(ctx, args)
+
 @add_cmd.error
 @remove_cmd.error
 @add_meme.error
 @give_medal.error
 @remove_medal.error
 @slow_mode.error
-async def cmd_error(ctx: commands.Context, error: commands.CommandError):
+async def perm_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send(errors.no_perm.format(ctx.author.mention))
+
+
+# @kick.error
+# async def ban_error(ctx: commands.Context, error: commands.CommandError):
+#     if isinstance(error, commands.MissingPermissions):
+#         await ctx.send(errors.no_perm.format(ctx.author.mention))
+#     else:
+#         await ctx.send("Not even I have the power to do that")
+
 
 bot.run(token)

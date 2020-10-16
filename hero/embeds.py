@@ -2,7 +2,7 @@ from typing import List
 from sqlite3 import Connection
 
 from discord import Embed
-from hero import cmd_database, meme, url
+from hero import cmd_database, fun, url
 from hero.embed_model import EmbedModel
 
 embed_color = 16765210
@@ -40,7 +40,7 @@ def get_embed_model(cmd: str):
     embedModel.set_fields(embedData[5])
 
     if cmd == "meme":
-        embedModel.set_image(meme.get_random_meme())
+        embedModel.set_image(fun.get_random_meme())
 
     return embedModel
 

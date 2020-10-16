@@ -14,3 +14,5 @@ bad_name: str = "That is a bad user id. Please mention the user with the command
 get_medal_name: str = "That's not right. The format is `?medals <mention>`"
 rm_medal_name: str = "That's not right. The format is `?removemedal <mention>`"
 bad_role: str = "That is a bad role id. Please mention the role with the command."
+bad_kick: str = "That's not right. The format is `?kick <mention> <reason>`"
+no_user: str = "That user does not exist."

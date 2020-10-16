@@ -1,8 +1,29 @@
 from sqlite3 import Connection
 from typing import List
 
+from discord import Embed
+from discord.ext.commands import Context, Bot
+
 from hero.embed_model import EmbedModel
-from hero import cmd_database
+from hero import cmd_database, errors, embeds
+
+
+async def send_info(bot: Bot, ctx: Context, args):
+    cmd_db: Connection = cmd_database.connect_to_cmd_db()
+    if len(args) == 0:
+        embed_model: EmbedModel = get_full_info()
+        embed_model.set_thumbnail(bot.user.avatar_url)
+    elif args[0] in cmd_database.select_all_custom_cmds(cmd_db):
+        await ctx.send(errors.no_custom_info)
+        return
+    elif args[0] in cmd_database.select_all_cmds(cmd_db):
+        embed_model: EmbedModel = get_cmd_info(args[0])
+    else:
+        await ctx.send(errors.invalid_cmd)
+        return
+
+    embed: Embed = embeds.create_embed(embed_model)
+    await ctx.send(embed=embed)
 
 
 def get_full_info():

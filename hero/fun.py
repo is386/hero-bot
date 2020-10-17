@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, seed, choice
 from discord import Embed
 from discord.ext import commands
 from hero import embeds, url
@@ -27,6 +27,16 @@ class Fun(commands.Cog):
             await ctx.send(add_meme_msg)
         else:
             await ctx.send("That is not a valid image url.")
+
+    @commands.command(name="meme")
+    async def send_meme(self, ctx: commands.Context):
+        with open(meme_path, "r") as f:
+            seed()
+            meme: str = choice(f.readlines())
+        model: EmbedModel = EmbedModel("meme")
+        model.set_image(meme)
+        embed: Embed = embeds.create_embed(model)
+        ctx.send(embed=embed)
 
     @commands.command(name="coin")
     async def coin(self, ctx: commands.Context):

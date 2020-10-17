@@ -38,10 +38,6 @@ def get_embed_model(cmd: str):
     embedModel.set_thumbnail(embedData[3])
     embedModel.set_image(embedData[4])
     embedModel.set_fields(embedData[5])
-
-    if cmd == "meme":
-        embedModel.set_image(fun.get_random_meme())
-
     return embedModel
 
 

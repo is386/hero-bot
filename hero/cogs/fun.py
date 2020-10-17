@@ -64,8 +64,7 @@ class Fun(commands.Cog):
                 model.set_image(dbz_gif)
                 embed: Embed = embeds.create_embed(model)
                 await ctx.send(embed=embed)
-            else:
-                await ctx.send("🎲 {} rolled **{}** 🎲".format(ctx.author.mention, roll))
+            await ctx.send("🎲 {} rolled **{}** 🎲".format(ctx.author.mention, roll))
 
     @add_meme.error
     async def perm_error(self, ctx: commands.Context, error: commands.CommandError):

@@ -53,6 +53,7 @@ class Fun(commands.Cog):
 
     @commands.command(name="roll")
     async def roll(self, ctx: commands.Context, dice_sides: int):
+        dice_sides = dice_sides if dice_sides < 1000000000 else 1000000000
         await ctx.send("🎲 {} rolled **{}** 🎲".format(ctx.author.mention, randint(1, dice_sides)))
 
     @add_meme.error

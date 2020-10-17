@@ -4,8 +4,8 @@ from typing import List
 from discord import Embed
 from discord.ext import commands
 
-from hero.embed_model import EmbedModel
-from hero import cmd_database, embeds
+from hero.utils.embed_model import EmbedModel
+from hero.utils import cmd_database, embeds
 
 
 class Help(commands.Cog):

@@ -1,7 +1,7 @@
 from discord import Embed, Member, Message
 from discord.ext import commands
-from hero import embeds, reactions
-from hero.embed_model import EmbedModel
+from hero.utils import embeds, reactions
+from hero.utils.embed_model import EmbedModel
 
 bad_user: str = "That user does not exist. Did you try pinging the user?"
 

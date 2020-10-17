@@ -1,6 +1,6 @@
 from sqlite3 import Connection
 from discord.ext import commands
-from hero import medal_database
+from hero.utils import medal_database
 
 medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
 medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"

@@ -2,8 +2,8 @@ from typing import List
 from sqlite3 import Connection
 
 from discord import Embed
-from hero import cmd_database, fun, url
-from hero.embed_model import EmbedModel
+from hero.utils import cmd_database, url
+from hero.utils.embed_model import EmbedModel
 
 embed_color = 16765210
 

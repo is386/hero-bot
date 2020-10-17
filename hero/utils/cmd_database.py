@@ -1,6 +1,6 @@
 from sqlite3 import connect, Connection, Cursor
 from typing import List
-from hero.embed_model import EmbedModel
+from hero.utils.embed_model import EmbedModel
 
 
 def connect_to_cmd_db() -> Connection:

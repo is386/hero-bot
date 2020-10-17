@@ -5,15 +5,15 @@ from discord import Game, Embed, Message, Intents, Guild, Member
 from discord.ext import commands
 
 from secret import token
-from hero.embed_model import EmbedModel
-from hero import embeds, cmd_database, server_database
+from hero.utils.embed_model import EmbedModel
+from hero.utils import embeds, cmd_database, server_database
 
-from hero.boost import Boost
-from hero.custom import CustomCommands
-from hero.fun import Fun
-from hero.help import Help
-from hero.medals import Medals
-from hero.mod import Mod
+from hero.cogs.boost import Boost
+from hero.cogs.custom import CustomCommands
+from hero.cogs.fun import Fun
+from hero.cogs.help import Help
+from hero.cogs.medals import Medals
+from hero.cogs.mod import Mod
 
 prefix: str = "?"
 status_msg: str = "Type ?info"

@@ -1,8 +1,8 @@
 from sqlite3 import Connection
 from discord import Embed
 from discord.ext import commands
-from hero import cmd_database, embeds
-from hero.embed_model import EmbedModel
+from hero.utils import cmd_database, embeds
+from hero.utils.embed_model import EmbedModel
 
 cmd_msg: str = "I {} the **?{}** command."
 

@@ -1,8 +1,8 @@
 from random import randint, seed, choice
 from discord import Embed
 from discord.ext import commands
-from hero import embeds, url
-from hero.embed_model import EmbedModel
+from hero.utils import embeds, url
+from hero.utils.embed_model import EmbedModel
 
 meme_path: str = "databases/memes"
 heads: str = "https://i.imgur.com/dTNbMle.png"
@@ -36,7 +36,7 @@ class Fun(commands.Cog):
         model: EmbedModel = EmbedModel("meme")
         model.set_image(meme)
         embed: Embed = embeds.create_embed(model)
-        ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.command(name="coin")
     async def coin(self, ctx: commands.Context):

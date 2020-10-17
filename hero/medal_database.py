@@ -3,7 +3,7 @@ from typing import List
 
 
 def connect_to_db() -> Connection:
-    return connect("databases/medals.db")
+    return connect("databases/server.db")
 
 
 def select_count(db: Connection, user: int) -> List:
@@ -41,7 +41,7 @@ def select_all(db: Connection) -> List:
 
     counts = {k: v for k, v in sorted(
         counts.items(), key=lambda item: item[1], reverse=True)}
-    
+
     return counts
 
 

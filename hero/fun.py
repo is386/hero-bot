@@ -1,8 +1,6 @@
-from random import choice, seed, randint
-
+from random import randint
 from discord import Embed
 from discord.ext import commands
-
 from hero import embeds, url
 from hero.embed_model import EmbedModel
 
@@ -12,33 +10,40 @@ tails: str = "https://i.imgur.com/Suza17V.png"
 add_meme_msg: str = "I added this new meme"
 
 
-async def flip_coin(ctx: commands.Context):
-    model: EmbedModel = EmbedModel("coin")
-    model.set_title("HEADS")
-    model.set_image(heads)
+class Fun(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
-    if randint(1, 100) % 2 != 0:
-        model.set_title("TAILS")
-        model.set_image(tails)
+    @commands.command(name="addmeme")
+    @commands.has_permissions(ban_members=True)
+    async def add_meme(self, ctx: commands.Context, meme_link: str):
+        if url.is_image(meme_link):
+            with open(meme_path, "a") as f:
+                f.write("\n" + meme_link)
+            embed_model: EmbedModel = EmbedModel("NewMeme")
+            embed_model.set_image(meme_link)
+            embed: Embed = embeds.create_embed(embed_model)
+            await ctx.send(embed=embed)
+            await ctx.send(add_meme_msg)
+        else:
+            await ctx.send("That is not a valid image url.")
 
-    embed: Embed = embeds.create_embed(model)
-    await ctx.send(embed=embed)
+    @commands.command(name="coin")
+    async def coin(self, ctx: commands.Context):
+        model: EmbedModel = EmbedModel("coin")
+        model.set_title("HEADS")
+        model.set_image(heads)
 
+        if randint(1, 100) % 2 != 0:
+            model.set_title("TAILS")
+            model.set_image(tails)
 
-async def add_meme(ctx: commands.Context, meme: str):
-    if url.is_image(meme):
-        with open(meme_path, "a") as f:
-            f.write("\n" + meme)
-        embed_model: EmbedModel = EmbedModel("NewMeme")
-        embed_model.set_image(meme)
-        embed: Embed = embeds.create_embed(embed_model)
+        embed: Embed = embeds.create_embed(model)
         await ctx.send(embed=embed)
-        await ctx.send(add_meme_msg)
-    else:
-        await ctx.send("That is not a valid image url.")
 
-
-def get_random_meme():
-    with open(meme_path, "r") as f:
-        seed()
-        return choice(f.readlines())
+    @add_meme.error
+    async def perm_error(self, ctx: commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)

@@ -5,8 +5,15 @@ from discord import Game, Embed, Message, Intents
 from discord.ext import commands
 
 from secret import token
-from hero import embeds, boost, cmd_database, info, fun, medals, custom, mods
 from hero.embed_model import EmbedModel
+from hero import embeds, cmd_database
+
+from hero.boost import Boost
+from hero.custom import CustomCommands
+from hero.fun import Fun
+from hero.help import Help
+from hero.medals import Medals
+from hero.mod import Mod
 
 prefix: str = "?"
 status_msg: str = "Type ?info"
@@ -42,95 +49,10 @@ async def on_message(msg: Message):
     await bot.process_commands(msg)
 
 
-@bot.command(name="info")
-async def cmd_info(ctx: commands.Context, *args):
-    await info.send_info(bot, ctx, args)
-
-
-@bot.command(name="boostboard")
-async def boostboard(ctx: commands.Context):
-    await boost.send_boostboard(ctx)
-
-
-@bot.command(name="boost")
-async def boost_msg(ctx: commands.Context):
-    await boost.send_boost_msg(ctx)
-
-
-@bot.command(name="coin")
-async def coin(ctx: commands.Context):
-    await fun.flip_coin(ctx)
-
-
-@bot.command(name="givemedal", aliases=["addmedal"])
-@commands.has_permissions(administrator=True)
-async def give_medal(ctx: commands.Context, mention: str):
-    await medals.give_medal(ctx, mention)
-
-
-@bot.command(name="removemedal")
-@commands.has_permissions(administrator=True)
-async def remove_medal(ctx: commands.Context, mention: str):
-    await medals.remove_medal(ctx, mention)
-
-
-@bot.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
-async def medalboard(ctx: commands.Context):
-    await medals.send_medalboard(bot, ctx)
-
-
-@bot.command(name="medals", aliases=["minimedals", "medal"])
-async def get_medals(ctx: commands.Context, *args):
-    await medals.send_medals(ctx, args)
-
-
-@bot.command(name="addcommand", aliases=["addcmd"])
-@commands.has_permissions(administrator=True)
-async def add_cmd(ctx: commands.Context, *args):
-    await custom.add_cmd(ctx, args)
-
-
-@bot.command(name="removecommand", aliases=["removecmd"])
-@commands.has_permissions(administrator=True)
-async def remove_cmd(ctx: commands.Context, cmd_name: str):
-    await custom.rm_cmd(ctx, cmd_name)
-
-
-@bot.command(name="addmeme")
-@commands.has_permissions(ban_members=True)
-async def add_meme(ctx: commands.Context, meme_link: str):
-    await fun.add_meme(ctx, meme_link)
-
-
-@bot.command(name="slowmode", aliases=["funmode"])
-@commands.has_permissions(manage_channels=True)
-async def slow_mode(ctx: commands.Context, seconds: int):
-    await mods.slow_mode(ctx, seconds)
-
-
-# @bot.command(name="kick")
-# @commands.has_permissions(kick_members=True)
-# async def kick(ctx: commands.Context, *args):
-#     await mods.kick(ctx, args)
-
-@add_cmd.error
-@remove_cmd.error
-@add_meme.error
-@give_medal.error
-@remove_medal.error
-@slow_mode.error
-async def perm_error(ctx: commands.Context, error: commands.CommandError):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(error)
-
-# @kick.error
-# async def ban_error(ctx: commands.Context, error: commands.CommandError):
-#     if isinstance(error, commands.MissingPermissions):
-#         await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
-#     else:
-#         await ctx.send("Not even I have the power to do that")
-
-
+bot.add_cog(Boost(bot))
+bot.add_cog(CustomCommands(bot))
+bot.add_cog(Fun(bot))
+bot.add_cog(Help(bot))
+bot.add_cog(Medals(bot))
+bot.add_cog(Mod(bot))
 bot.run(token)

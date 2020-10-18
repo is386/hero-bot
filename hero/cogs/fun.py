@@ -51,9 +51,20 @@ class Fun(commands.Cog):
         embed: Embed = embeds.create_embed(model)
         await ctx.send(embed=embed)
 
+    @commands.command(name="roll")
+    async def roll(self, ctx: commands.Context, dice_sides: int):
+        await ctx.send("🎲 {} rolled **{}** 🎲".format(ctx.author.mention, randint(1, dice_sides)))
+
     @add_meme.error
     async def perm_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(error)
+
+    @roll.error
+    async def roll_error(self, ctx: commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
+        else:
+            await ctx.send("That is not a number.")

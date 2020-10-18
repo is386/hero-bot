@@ -79,6 +79,13 @@ class Mod(commands.Cog):
         else:
             await ctx.send("They are too powerful...")
 
+    @slow_mode.error
+    async def slow_mode_error(self, ctx: commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
+        else:
+            await ctx.send("That is not a number.")
+
     def parse_mention(self, ctx: commands.Context, mention: str):
         try:
             user: int = int(''.join(i for i in mention if i.isalnum()))

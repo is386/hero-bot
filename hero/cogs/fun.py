@@ -1,6 +1,9 @@
 from random import randint, seed, choice
+from datetime import datetime, time
+
 from discord import Embed
-from discord.ext import commands
+from discord.ext import commands, tasks
+
 from hero.utils import embeds, url
 from hero.utils.embed_model import EmbedModel
 
@@ -9,11 +12,13 @@ heads: str = "https://i.imgur.com/dTNbMle.png"
 tails: str = "https://i.imgur.com/Suza17V.png"
 add_meme_msg: str = "I added this new meme"
 dbz_gif: str = "https://media.tenor.com/images/f1d0693271bdf3259481a1e54d184673/tenor.gif"
+hero_time_vid: str = "https://cdn.discordapp.com/attachments/509819835874541570/761054332652879932/video0.mp4"
 
 
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.hero_time.start()
 
     @commands.command(name="addmeme")
     @commands.has_permissions(ban_members=True)
@@ -79,3 +84,14 @@ class Fun(commands.Cog):
             await ctx.send(error)
         else:
             await ctx.send("That is not a number.")
+
+    @tasks.loop(minutes=1)
+    async def hero_time(self):
+        now = datetime.now()
+        if now.hour == 22 and now.minute == 38:
+            chan = self.bot.get_channel(509819835874541570)
+            await chan.send("**IT'S HERO TIME\n**{}".format(hero_time_vid))
+
+    @hero_time.before_loop
+    async def before_hero_time(self):
+        await self.bot.wait_until_ready()

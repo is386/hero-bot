@@ -49,6 +49,7 @@ async def on_message(msg: Message):
 
     await bot.process_commands(msg)
 
+
 bot.add_cog(Boost(bot))
 bot.add_cog(CustomCommands(bot))
 bot.add_cog(Fun(bot))

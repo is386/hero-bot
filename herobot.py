@@ -1,12 +1,12 @@
 from typing import List
 from sqlite3 import Connection
 
-from discord import Game, Embed, Message, Intents, Guild, Member
+from discord import Game, Embed, Message, Intents
 from discord.ext import commands
 
 from secret import token
 from hero.utils.embed_model import EmbedModel
-from hero.utils import embeds, cmd_database, server_database
+from hero.utils import embeds, cmd_database
 
 from hero.cogs.boost import Boost
 from hero.cogs.custom import CustomCommands
@@ -14,6 +14,7 @@ from hero.cogs.fun import Fun
 from hero.cogs.help import Help
 from hero.cogs.medals import Medals
 from hero.cogs.mod import Mod
+from hero.cogs.welcome import Welcome
 
 prefix: str = "?"
 status_msg: str = "Type ?info"
@@ -48,39 +49,11 @@ async def on_message(msg: Message):
 
     await bot.process_commands(msg)
 
-
-@bot.event
-async def on_member_join(member: Member):
-    guild: Guild = member.guild
-    server_db: Connection = server_database.connect_to_db()
-    welcome: List = server_database.select_welcome(server_db, guild.id)
-    chan = guild.get_channel(welcome[0])
-    await chan.send("{} {}".format(member.mention, welcome[1]))
-
-
-@bot.command(name="welcome")
-@commands.has_permissions(administrator=True)
-async def welcome(ctx: commands.Context, *args):
-    if len(args) < 1:
-        await ctx.send("That's not right. The format is `?welcome <message>.`")
-        return
-
-    server_db: Connection = server_database.connect_to_db()
-    msg: str = " ".join(args)
-    server: int = ctx.guild.id
-    chan: int = ctx.channel.id
-    if not server_database.select_welcome(server_db, ctx.guild.id):
-        server_database.insert_welcome(server_db, server, chan, msg)
-    else:
-        server_database.update_welcome(server_db, server, chan, msg)
-
-    await ctx.send("This is now the welcome channel. The message is `@User {}`.".format(msg))
-
-
 bot.add_cog(Boost(bot))
 bot.add_cog(CustomCommands(bot))
 bot.add_cog(Fun(bot))
 bot.add_cog(Help(bot))
 bot.add_cog(Medals(bot))
 # bot.add_cog(Mod(bot))
+bot.add_cog(Welcome(bot))
 bot.run(token)

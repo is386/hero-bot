@@ -23,20 +23,20 @@ class Combo(commands.Cog):
         if not final_combo:
             return
         for c in combo_links:
-            if final_combo + ".gif" == c.split("/")[-1]:
+            if final_combo + ".gif" == str(c.split("/")[-1]):
+                model: EmbedModel = EmbedModel("combo")
+                model.set_title(final_combo)
+                model.set_image(c)
+                embed: Embed = embeds.create_embed(model)
+                await ctx.send(embed=embed)
                 break
-        model: EmbedModel = EmbedModel("combo")
-        model.set_title(final_combo)
-        model.set_image(c)
-        embed: Embed = embeds.create_embed(model)
-        await ctx.send(embed=embed)
 
     def load_combos(self):
         combo_files: List[str] = []
         with open(combo_dir, "r") as combo_file:
             links: List[str] = combo_file.readlines()
             for link in links:
-                combo_files.append(link)
+                combo_files.append(str.rstrip(link))
         return combo_files
 
     def parse_combo_links(self, links: list):

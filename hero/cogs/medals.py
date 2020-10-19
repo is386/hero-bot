@@ -3,6 +3,8 @@ from discord.ext import commands
 from hero.utils import medal_database
 
 medals_msg: str = "{} has {} minimedals <:MiniMedal:588443225358991412>"
+medal_earned: str = "What luck! {} finds a mini medal <:MiniMedal:588443225358991412>"
+medal_lost: str = "What despair! {} lost a mini medal <:MiniMedal:588443225358991412>"
 medal_board_msg: str = "**Top 10 Herocord Minimedalists**```{}```"
 
 
@@ -26,7 +28,7 @@ class Medals(commands.Cog):
         else:
             medal_database.insert_count(medal_db, user)
 
-        await ctx.send(medals_msg.format(user_ping, c))
+        await ctx.send(medal_earned.format(user_ping, c))
 
     @commands.command(name="removemedal")
     @commands.has_permissions(administrator=True)
@@ -42,7 +44,7 @@ class Medals(commands.Cog):
             c -= 1
             medal_database.update_count(medal_db, user, c)
 
-        await ctx.send(medals_msg.format(user_ping, c))
+        await ctx.send(medal_lost.format(user_ping))
 
     @commands.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
     async def medalboard(self, ctx: commands.Context):

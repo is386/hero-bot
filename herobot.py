@@ -9,6 +9,7 @@ from hero.utils.embed_model import EmbedModel
 from hero.utils import embeds, cmd_database
 
 from hero.cogs.boost import Boost
+from hero.cogs.combo import Combo
 from hero.cogs.custom import CustomCommands
 from hero.cogs.fun import Fun
 from hero.cogs.help import Help
@@ -51,6 +52,7 @@ async def on_message(msg: Message):
 
 
 bot.add_cog(Boost(bot))
+bot.add_cog(Combo(bot))
 bot.add_cog(CustomCommands(bot))
 bot.add_cog(Fun(bot))
 bot.add_cog(Help(bot))

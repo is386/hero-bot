@@ -63,7 +63,7 @@ class Fun(commands.Cog):
             await ctx.send("Not funny. Didn't laugh 😐")
         else:
             dice_sides = dice_sides if dice_sides < 1000000000 else 1000000000
-            roll: int = randint(1, dice_sides + 1)
+            roll: int = randint(1, dice_sides)
             if roll == 9001:
                 model: EmbedModel = EmbedModel("9001")
                 model.set_image(dbz_gif)

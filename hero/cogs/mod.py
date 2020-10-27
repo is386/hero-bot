@@ -66,11 +66,6 @@ class Mod(commands.Cog):
         else:
             await ctx.send("The ban was cancelled.")
 
-    @slow_mode.error
-    async def perm_error(self, ctx: commands.Context, error: commands.CommandError):
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
-
     @kick.error
     @ban.error
     async def ban_error(self, ctx: commands.Context, error: commands.CommandError):
@@ -81,7 +76,9 @@ class Mod(commands.Cog):
 
     @slow_mode.error
     async def slow_mode_error(self, ctx: commands.Context, error: commands.CommandError):
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
+        elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(error)
         else:
             await ctx.send("That is not a number.")

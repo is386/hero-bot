@@ -34,6 +34,11 @@ async def on_message(msg: Message):
         return
 
     cmd: str = msg.content.split()[0][1:]
+
+    if msg.author.id == 139148414507155457 and cmd == "speak":
+        await self_msg(msg)
+        return
+
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
     text_cmds: List = cmd_database.select_all_text_cmds(cmd_db)
     embed_cmds: List = cmd_database.select_all_embed_cmds(cmd_db)
@@ -49,6 +54,19 @@ async def on_message(msg: Message):
         return
 
     await bot.process_commands(msg)
+
+
+async def self_msg(msg: str):
+    ridcord = bot.get_guild(509819835874541568)
+    chan_id: int = 509819835874541570
+
+    if len(msg.content.split()) > 1:
+        chan_id = int(msg.content.split()[1])
+    chan = ridcord.get_channel(chan_id)
+
+    while True:
+        m: str = input("> ")
+        await chan.send(m)
 
 
 bot.add_cog(Boost(bot))

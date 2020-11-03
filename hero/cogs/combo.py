@@ -1,5 +1,6 @@
 from typing import List
 from re import findall
+from os import path
 
 from discord import Message, Embed
 from discord.ext import commands
@@ -7,6 +8,7 @@ from discord.ext import commands
 from hero.utils import reactions, embeds
 from hero.utils.embed_model import EmbedModel
 
+# TODO: this is literally a text file, will need a table for this some day
 combo_dir = "databases/combos"
 combo_msg: str = "Pick a move for the combo within 20 seconds (Sender Only):\n```{}```"
 
@@ -17,7 +19,12 @@ class Combo(commands.Cog):
 
     @commands.command(name="combo")
     async def combo(self, ctx: commands.Context):
+        if not path.exists(combo_dir):
+            open(combo_dir, "w+")
         combo_links: List[str] = self.load_combos()
+        if len(combo_links) == 0:
+            await ctx.send("There are no combos.")
+            return
         combos: dict = self.parse_combo_links(combo_links)
         final_combo: str = await self.get_combo(ctx, combos)
         if not final_combo:
@@ -50,6 +57,7 @@ class Combo(commands.Cog):
                 combos[combo[0]] = [combo[1:]]
         return combos
 
+    # TODO: Can probably make this better with recursion
     async def get_combo(self, ctx: commands.Context, combos: dict):
         final_combo: str = ""
         resp: Message = None

@@ -1,9 +1,26 @@
 from sqlite3 import connect, Connection, Cursor
+from os import path
 from typing import List
+
+db_path: str = "databases/server.db"
+
+
+def init_db() -> Connection:
+    db: Connection = connect(db_path)
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS "info" (
+                "id"INTEGER,
+                "welcome_chan"INTEGER,
+                "welcome_msg"TEXT, 
+                "welcome_on"INTEGER
+        );""")
+    return db
 
 
 def connect_to_db() -> Connection:
-    return connect("databases/server.db")
+    if not path.exists(db_path):
+        open(db_path, "w+").close()
+    return init_db()
 
 
 def select_welcome(db: Connection, server: int):

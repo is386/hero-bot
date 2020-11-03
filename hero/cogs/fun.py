@@ -1,5 +1,6 @@
 from random import randint, seed, choice
 from datetime import datetime, time
+from os import path
 
 from discord import Embed
 from discord.ext import commands, tasks
@@ -7,6 +8,7 @@ from discord.ext import commands, tasks
 from hero.utils import embeds, url
 from hero.utils.embed_model import EmbedModel
 
+# TODO: this is literally a text file, will need a table for this some day
 meme_path: str = "databases/memes"
 heads: str = "https://i.imgur.com/dTNbMle.png"
 tails: str = "https://i.imgur.com/Suza17V.png"
@@ -36,9 +38,15 @@ class Fun(commands.Cog):
 
     @commands.command(name="meme")
     async def send_meme(self, ctx: commands.Context):
+        if not path.exists(meme_path):
+            open(meme_path, "w+")
         with open(meme_path, "r") as f:
             seed()
-            meme: str = choice(f.readlines())
+            try:
+                meme: str = choice(f.readlines())
+            except:
+                await ctx.send("There are no memes")
+                return
         model: EmbedModel = EmbedModel("meme")
         model.set_image(meme)
         embed: Embed = embeds.create_embed(model)

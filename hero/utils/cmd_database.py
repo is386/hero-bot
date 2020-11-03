@@ -1,10 +1,52 @@
 from sqlite3 import connect, Connection, Cursor
+from os import path
 from typing import List
 from hero.utils.embed_model import EmbedModel
 
+db_path: str = "databases/commands.db"
+
+
+def init_db() -> Connection:
+    db: Connection = connect(db_path)
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS "embed_fields" (
+                "embed_id"      INTEGER,
+                "name"  TEXT,
+                "value" TEXT
+        );""")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS "text_commands" (
+                "cmd_id"        INTEGER,
+                "text"  TEXT
+        );""")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS "embed_commands" (
+                "cmd_id"        INTEGER,
+                "title" TEXT,
+                "description"   TEXT,
+                "footer"        TEXT,
+                "thumbnail"     TEXT,
+                "image" TEXT
+        );""")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS "all_commands" (
+                "id"    INTEGER NOT NULL UNIQUE,
+                "name"  TEXT UNIQUE,
+                "type"  TEXT,
+                "category"      TEXT,
+                "aliases"       TEXT,
+                "description"   TEXT,
+                "usage" TEXT,
+                "example"       TEXT,
+                PRIMARY KEY("id")
+        ); """)
+    return db
+
 
 def connect_to_cmd_db() -> Connection:
-    return connect("databases/commands.db")
+    if not path.exists(db_path):
+        open(db_path, "w+").close()
+    return init_db()
 
 
 def select_all_cmds(db: Connection) -> List:
@@ -66,9 +108,9 @@ def select_text_cmd(cmd: str, db: Connection) -> str:
         FROM
             all_commands, text_commands
         WHERE
-            id = cmd_id
+            id=cmd_id
         AND
-            name = ?
+            name= ?
     """, (cmd,))
     return c.fetchall()[0][-1]
 
@@ -81,9 +123,9 @@ def select_embed_cmd(cmd: str, db: Connection) -> List:
         FROM
             all_commands, embed_commands
         WHERE
-            id = cmd_id
+            id=cmd_id
         AND
-            name = ?
+            name= ?
     """, (cmd,))
     rows: List = c.fetchall()
     fields: dict = select_embed_fields(rows[0][0], db)
@@ -114,7 +156,7 @@ def select_cmd_id(cmd: str, db: Connection):
 def insert_text_cmd(cmd: str, text: str, db: Connection):
     db.execute("""
         INSERT INTO
-            all_commands (name, type, category)
+            all_commands(name, type, category)
         VALUES
             (?, 'text', 'Custom')
     """, (cmd,))
@@ -124,7 +166,7 @@ def insert_text_cmd(cmd: str, text: str, db: Connection):
 
     db.execute("""
         INSERT INTO
-            text_commands (cmd_id, text)
+            text_commands(cmd_id, text)
         VALUES
             (?, ?)
     """, (cmd_id, text))
@@ -147,7 +189,7 @@ def remove_text_cmd(cmd: str, db: Connection):
 def insert_embed_cmd(embed: EmbedModel, db: Connection):
     db.execute("""
         INSERT INTO
-            all_commands (name, type, category)
+            all_commands(name, type, category)
         VALUES
             (?, 'embed', 'Custom')
     """, (embed.name,))
@@ -157,7 +199,8 @@ def insert_embed_cmd(embed: EmbedModel, db: Connection):
 
     db.execute("""
         INSERT INTO
-            embed_commands (cmd_id, title, description, footer, thumbnail, image)
+            embed_commands(cmd_id, title, description,
+                           footer, thumbnail, image)
         VALUES
             (?, ?, ?, ?, ?, ?)
     """, (cmd_id, embed.title, embed.description, embed.footer, embed.thumbnail, embed.image))
@@ -166,7 +209,7 @@ def insert_embed_cmd(embed: EmbedModel, db: Connection):
     for f in embed.fields.keys():
         db.execute("""
             INSERT INTO
-                embed_fields (embed_id, name, value)
+                embed_fields(embed_id, name, value)
             VALUES
                 (?, ?, ?)
         """, (cmd_id, f, embed.fields[f]))

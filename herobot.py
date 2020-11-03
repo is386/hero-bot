@@ -1,5 +1,6 @@
 from typing import List
 from sqlite3 import Connection
+from os import path, mkdir
 
 from discord import Game, Embed, Message, Intents
 from discord.ext import commands
@@ -68,6 +69,9 @@ async def self_msg(msg: str):
         m: str = input("> ")
         await chan.send(m)
 
+
+if not path.exists("./databases"):
+    mkdir("./databases")
 
 bot.add_cog(Boost(bot))
 bot.add_cog(Combo(bot))

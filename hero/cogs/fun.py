@@ -22,6 +22,7 @@ class Fun(commands.Cog):
         self.bot = bot
         self.hero_time.start()
 
+    # Adds the meme from the given link and sends it back
     @commands.command(name="addmeme")
     @commands.has_permissions(ban_members=True)
     async def add_meme(self, ctx: commands.Context, meme_link: str):
@@ -36,6 +37,7 @@ class Fun(commands.Cog):
         else:
             await ctx.send("That is not a valid image url.")
 
+    # Sends a random meme from the memes file
     @commands.command(name="meme")
     async def send_meme(self, ctx: commands.Context):
         if not path.exists(meme_path):
@@ -52,6 +54,7 @@ class Fun(commands.Cog):
         embed: Embed = embeds.create_embed(model)
         await ctx.send(embed=embed)
 
+    # Flips a coin
     @commands.command(name="coin")
     async def coin(self, ctx: commands.Context):
         model: EmbedModel = EmbedModel("coin")
@@ -65,6 +68,7 @@ class Fun(commands.Cog):
         embed: Embed = embeds.create_embed(model)
         await ctx.send(embed=embed)
 
+    # Rolls a dice with a given number of sides. Some funny messages for funny numbers
     @commands.command(name="roll")
     async def roll(self, ctx: commands.Context, dice_sides: int):
         if dice_sides in [69, 420]:

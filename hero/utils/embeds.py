@@ -8,7 +8,8 @@ from hero.utils.embed_model import EmbedModel
 embed_color = 16765210
 
 
-def create_embed(embedModel: EmbedModel):
+# Returns a discord embed object for the given embed model
+def create_embed(embedModel: EmbedModel) -> Embed:
     embed: Embed = Embed(title=embedModel.title,
                          color=embed_color, description=embedModel.description)
 
@@ -28,6 +29,7 @@ def create_embed(embedModel: EmbedModel):
     return embed
 
 
+# Gets the embed model of an embed command in the database
 def get_embed_model(cmd: str):
     cmd_db: Connection = cmd_database.connect_to_cmd_db()
     embedData: List = cmd_database.select_embed_cmd(cmd, cmd_db)
@@ -41,6 +43,10 @@ def get_embed_model(cmd: str):
     return embedModel
 
 
+# Parses the add embed command message of the following form
+# ?addcmd embed new
+# TITLE=new cmd
+# DESCRIPTION=this is a new command
 def parse_embed_msg(embed: EmbedModel, msg: str):
     sections: List = msg.split("\n")
     for s in sections[1:]:

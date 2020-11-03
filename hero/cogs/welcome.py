@@ -10,6 +10,7 @@ class Welcome(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Allows for the setting of the welcome message
     @commands.command(name="welcome")
     @commands.has_permissions(administrator=True)
     async def welcome(self, ctx: commands.Context, *args):
@@ -21,6 +22,7 @@ class Welcome(commands.Cog):
         msg: str = " ".join(args)
         server: int = ctx.guild.id
         chan: int = ctx.channel.id
+        # If the server does not already have a welcome message set
         if not server_database.select_welcome(server_db, ctx.guild.id):
             server_database.insert_welcome(server_db, server, chan, msg)
         else:
@@ -28,6 +30,8 @@ class Welcome(commands.Cog):
 
         await ctx.send("This is now the welcome channel. The message is `@User {}`.".format(msg))
 
+    # Sends a welcome message when a user joins the server
+    # TODO: Send no message if the server did not set up a welcome message
     @commands.Cog.listener()
     async def on_member_join(self, member: Member):
         guild: Guild = member.guild

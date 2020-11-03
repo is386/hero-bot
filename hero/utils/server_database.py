@@ -5,6 +5,7 @@ from typing import List
 db_path: str = "databases/server.db"
 
 
+# Initializes the server database with the server info table
 def init_db() -> Connection:
     db: Connection = connect(db_path)
     db.execute("""
@@ -17,13 +18,15 @@ def init_db() -> Connection:
     return db
 
 
+# Returns a connection to the server database
 def connect_to_db() -> Connection:
     if not path.exists(db_path):
         open(db_path, "w+").close()
     return init_db()
 
 
-def select_welcome(db: Connection, server: int):
+# Returns the server's welcome message
+def select_welcome(db: Connection, server: int) -> str:
     c: Cursor = db.cursor()
     c = db.execute(
         "SELECT welcome_chan, welcome_msg FROM info WHERE id=?", (server,))
@@ -33,12 +36,14 @@ def select_welcome(db: Connection, server: int):
     return rows[0]
 
 
+# Inserts the server's welcome message
 def insert_welcome(db: Connection, server: int, chan: int, msg: str):
     db.execute(
         "INSERT INTO info (id, welcome_chan, welcome_msg) VALUES (?, ?, ?)", (server, chan, msg))
     db.commit()
 
 
+# Updates the server's welcome message
 def update_welcome(db: Connection, server: int, chan: int, msg: str):
     db.execute(
         "UPDATE info SET welcome_chan=?, welcome_msg=? WHERE id=?", (chan, msg, server))

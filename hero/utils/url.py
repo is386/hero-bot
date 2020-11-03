@@ -12,12 +12,14 @@ regex = compile(
     r'(?:/?|[/?]\S+)$', IGNORECASE)
 
 
+# Checks if a url leads somewhere
 def exists(url: str):
     if match(regex, url) is not None and head(url).status_code == 200:
         return True
     return False
 
 
+# Checks if a url is an image
 def is_image(url: str):
     if exists(url):
         image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")

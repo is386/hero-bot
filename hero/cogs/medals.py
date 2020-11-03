@@ -12,6 +12,7 @@ class Medals(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Increments the medal count for a user
     @commands.command(name="givemedal", aliases=["addmedal"])
     @commands.has_permissions(administrator=True)
     async def give_medal(self, ctx: commands.Context, user_ping: str):
@@ -22,6 +23,7 @@ class Medals(commands.Cog):
         medal_db: Connection = medal_database.connect_to_db()
         c: int = 1
 
+        # Inserts or updates depending on if the user exists in the db
         if medal_database.user_exists(medal_db, user):
             c = medal_database.select_count(medal_db, user) + 1
             medal_database.update_count(medal_db, user, c)
@@ -30,6 +32,7 @@ class Medals(commands.Cog):
 
         await ctx.send(medal_earned.format(user_ping, c))
 
+    # Reduces the medal count for a user
     @commands.command(name="removemedal")
     @commands.has_permissions(administrator=True)
     async def remove_medal(self, ctx: commands.Context, user_ping: str):
@@ -40,18 +43,23 @@ class Medals(commands.Cog):
         medal_db: Connection = medal_database.connect_to_db()
         c: int = medal_database.select_count(medal_db, user)
 
+        # If the count is greater than 0
         if c:
             c -= 1
             medal_database.update_count(medal_db, user, c)
 
         await ctx.send(medal_lost.format(user_ping))
 
+    # Sends a leaderboard with users who have the most medals
     @commands.command(name="medalboard", aliases=["medalslist", "medallist", "medalsboard"])
     async def medalboard(self, ctx: commands.Context):
         medal_db: Connection = medal_database.connect_to_db()
-        medal_dict: dict = medal_database.select_all(medal_db)
+
+        # Gets the top ten users with the most medals from the db
+        medal_dict: dict = medal_database.select_ten(medal_db)
         new_dict: dict = {}
 
+        # Removes anyone in the top 10 with 0 medals
         for user_id in medal_dict.keys():
             if medal_dict[user_id] != 0:
                 user = await self.bot.fetch_user(user_id)
@@ -64,12 +72,14 @@ class Medals(commands.Cog):
         c: int = 1
         s: str = ""
 
+        # Builds a string that looks like a leaderboard
         for k in new_dict.keys():
             s += "{:}. {: <32} {}\n".format(c, k, new_dict[k])
             c += 1
 
         await ctx.send(medal_board_msg.format(s))
 
+    # Sends the number of medals a user has
     @commands.command(name="medals", aliases=["minimedals", "medal"])
     async def get_medals(self, ctx: commands.Context, *args):
         if len(args) < 1:
@@ -93,7 +103,8 @@ class Medals(commands.Cog):
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(error)
 
-    def parse_mention(self, mention: str):
+    # Returns the userid from a mention string
+    def parse_mention(self, mention: str) -> int:
         try:
             return int(''.join(i for i in mention if i.isalnum()))
         except ValueError:

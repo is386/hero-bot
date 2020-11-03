@@ -30,6 +30,8 @@ bot: commands.Bot = commands.Bot(
 
 
 @bot.event
+# This method is to check if a command is a custom added command
+# or one that is built into the bot.
 async def on_message(msg: Message):
     if bot.user == msg.author or len(msg.content) == 0 or msg.content[0] != prefix:
         return
@@ -39,6 +41,7 @@ async def on_message(msg: Message):
     text_cmds: List = cmd_database.select_all_text_cmds(cmd_db)
     embed_cmds: List = cmd_database.select_all_embed_cmds(cmd_db)
 
+    # Checks if the cmd is a custom text or embed cmd first
     if cmd in text_cmds:
         text: str = cmd_database.select_text_cmd(cmd, cmd_db)
         await msg.channel.send(text)
@@ -49,6 +52,7 @@ async def on_message(msg: Message):
         await msg.channel.send(embed=embed)
         return
 
+    # Processes the hardcoded bot commands if not a custom
     await bot.process_commands(msg)
 
 

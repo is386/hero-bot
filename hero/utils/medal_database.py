@@ -6,6 +6,7 @@ from typing import List
 db_path: str = "databases/server.db"
 
 
+# Initializes the server database with the medals table
 def init_db() -> Connection:
     db: Connection = connect(db_path)
     db.execute("""
@@ -16,13 +17,15 @@ def init_db() -> Connection:
     return db
 
 
+# Returns a connection to the server db
 def connect_to_db() -> Connection:
     if not path.exists(db_path):
         open(db_path, "w+").close()
     return init_db()
 
 
-def select_count(db: Connection, user: int) -> List:
+# Returns the medal count of a user
+def select_count(db: Connection, user: int) -> int:
     c: Cursor = db.cursor()
     c = db.execute("SELECT count FROM medals WHERE user=?", (user,))
     rows: List = c.fetchall()
@@ -31,6 +34,7 @@ def select_count(db: Connection, user: int) -> List:
     return rows[0][0]
 
 
+# Inserts the medal count of a user
 def insert_count(db: Connection, user: int):
     db.execute("""
         INSERT INTO
@@ -41,12 +45,14 @@ def insert_count(db: Connection, user: int):
     db.commit()
 
 
+# Updates the medal count of a user
 def update_count(db: Connection, user: int, c: int):
     db.execute("UPDATE medals SET count=? WHERE user=?", (c, user))
     db.commit()
 
 
-def select_all(db: Connection) -> List:
+# Selects the top ten users by medal count
+def select_ten(db: Connection) -> dict:
     c: Cursor = db.cursor()
     c = db.execute("SELECT * FROM medals")
     rows: List = c.fetchall()
@@ -61,7 +67,8 @@ def select_all(db: Connection) -> List:
     return counts
 
 
-def user_exists(db: Connection, user: int) -> List:
+# Checks if a user exists within the medals table
+def user_exists(db: Connection, user: int) -> bool:
     c: Cursor = db.cursor()
     c = db.execute("SELECT user FROM medals")
     rows: List = c.fetchall()

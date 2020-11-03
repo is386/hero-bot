@@ -12,6 +12,8 @@ class Boost(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Goes through all the boosters of the server and returns the
+    # top ten longest boosters
     @commands.command(name="boostboard")
     async def boostboard(self, ctx: commands.Context):
         boosters: dict = self.get_boosters(ctx)
@@ -22,6 +24,7 @@ class Boost(commands.Cog):
         msg: str = self.build_leaderboard(boosters)
         await ctx.send(top10_msg.format(msg))
 
+    # Special message for boosters only
     @commands.command(name="boost")
     async def boost_msg(self, ctx: commands.Context):
         if ctx.author in ctx.guild.premium_subscribers:
@@ -29,7 +32,8 @@ class Boost(commands.Cog):
         else:
             await ctx.message.add_reaction(dab_emote)
 
-    def get_boosters(self, ctx: commands.Context):
+    # Returns a dictionary of users ordered by boost time
+    def get_boosters(self, ctx: commands.Context) -> dict:
         today: datetime = datetime.today()
         boosters: List[Member] = ctx.guild.premium_subscribers
         ranks: dict = {}
@@ -44,7 +48,8 @@ class Boost(commands.Cog):
 
         return ranks
 
-    def build_leaderboard(self, boosters: dict):
+    # Returns a string that looks like a leaderboard
+    def build_leaderboard(self, boosters: dict) -> str:
         c: int = 1
         s: str = ""
 

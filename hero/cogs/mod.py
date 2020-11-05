@@ -1,11 +1,12 @@
-from hero.utils.reactions import confirm
+from hero.utils.embeds import create_embed
 from typing import List
+from sqlite3 import Connection
 
 from discord import Embed, Member, Message, utils, Role,  VoiceChannel, TextChannel, PermissionOverwrite
 from discord.abc import GuildChannel
 from discord.ext import commands
 
-from hero.utils import embeds, reactions
+from hero.utils import embeds, reactions, history_database
 from hero.utils.embed_model import EmbedModel
 
 bad_user: str = "That user does not exist. Did you try pinging the user?"
@@ -36,6 +37,22 @@ class Mod(commands.Cog):
         await ctx.channel.edit(slowmode_delay=seconds)
         await ctx.send("{} second funmode has been activated.".format(seconds))
 
+    # Sends the users infraction history
+    @commands.command(name="history", aliases=["lore"])
+    @commands.has_permissions(kick_members=True)
+    async def history(self, ctx, mention: str):
+        user: Member = self.parse_mention(ctx, mention)
+        if not user:
+            await ctx.send(bad_user)
+            return
+        db: Connection = history_database.connect_to_db()
+        infractions: List = history_database.select_history(db, user.id)
+        if infractions:
+            embed: Embed = self.get_history_embed(user, infractions)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("**{}** has no infraction history.".format(user.name))
+
     # Kicks a user from the server
     @commands.command(name="kick")
     @commands.has_permissions(kick_members=True)
@@ -44,6 +61,8 @@ class Mod(commands.Cog):
         if confirm:
             await user.kick(reason=reason)
             await ctx.send("**{}** was kicked for **{}**.".format(user.name, reason))
+            db: Connection = history_database.connect_to_db()
+            history_database.insert_infraction(db, user.id, "kick", reason)
         elif user and not confirm:
             await ctx.send("The kick was cancelled.")
 
@@ -55,6 +74,8 @@ class Mod(commands.Cog):
         if confirm:
             await user.ban(reason=reason)
             await ctx.send("**{}** was banned for **{}**.".format(user.name, reason))
+            db: Connection = history_database.connect_to_db()
+            history_database.insert_infraction(db, user.id, "ban", reason)
         elif user and not confirm:
             await ctx.send("The ban was cancelled.")
 
@@ -65,6 +86,8 @@ class Mod(commands.Cog):
         user, reason, confirm = await self.prep_infraction(ctx, args, "warn")
         if confirm:
             await ctx.send("**{}** was warned for **{}**.".format(user.name, reason))
+            db: Connection = history_database.connect_to_db()
+            history_database.insert_infraction(db, user.id, "warn", reason)
         elif user and not confirm:
             await ctx.send("The warn was cancelled.")
 
@@ -83,6 +106,8 @@ class Mod(commands.Cog):
                 role = await user.guild.create_role(name=mute_role)
             await user.add_roles(role)
             await ctx.send("**{}** was snoozed for **{}**.".format(user.name, reason))
+            db: Connection = history_database.connect_to_db()
+            history_database.insert_infraction(db, user.id, "mute", reason)
         elif user and not confirm:
             await ctx.send("Snooze missed.")
 
@@ -149,6 +174,18 @@ class Mod(commands.Cog):
         model.set_fields({"Reason": reason})
         return embeds.create_embed(model)
 
+    # Creates the embed message that displays infractions for a user
+    def get_history_embed(self, user: Member, infractions: List) -> Embed:
+        model: EmbedModel = EmbedModel("history")
+        model.set_title("Infraction History for {}".format(user.name))
+        model.set_description("ID: {}".format(user.id))
+        model.set_thumbnail(user.avatar_url)
+        for inf in infractions:
+            field: str = inf[1].upper()
+            value: str = "Date: {}\nReason: {}".format(inf[3], inf[2])
+            model.add_field(field, value)
+        return embeds.create_embed(model)
+
     # Adds the muted role to a channel:
     async def add_mute_role(self, channel: GuildChannel):
         role: Role = utils.get(channel.guild.roles, name=mute_role)
@@ -163,6 +200,7 @@ class Mod(commands.Cog):
     @ban.error
     @mute.error
     @unmute.error
+    @history.error
     async def ban_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))

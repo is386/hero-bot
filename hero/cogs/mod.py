@@ -83,7 +83,7 @@ class Mod(commands.Cog):
             await ctx.send("The ban was cancelled.")
 
     # Mutes the given user
-    @commands.command(name="mute")
+    @commands.command(name="mute", aliases=["snooze"])
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, *args):
         if len(args) < 2:
@@ -96,7 +96,7 @@ class Mod(commands.Cog):
             return
 
         if utils.get(user.roles, name=mute_role):
-            await ctx.send("This user is already muted.")
+            await ctx.send("This user is already affliced by snooze.")
             return
 
         reason: str = " ".join(args[1:])
@@ -111,12 +111,12 @@ class Mod(commands.Cog):
             if not role:
                 role = await user.guild.create_role(name=mute_role)
             await user.add_roles(role)
-            await ctx.send("**{}** was muted for **{}**.".format(user.name, reason))
+            await ctx.send("**{}** was snoozed for **{}**.".format(user.name, reason))
         else:
-            await ctx.send("The mute was cancelled.")
+            await ctx.send("Snooze missed.")
 
     # Unmutes the given user
-    @commands.command(name="unmute")
+    @commands.command(name="unmute", aliases=["unsnooze"])
     @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, mention: str):
         user: Member = self.parse_mention(ctx, mention)
@@ -126,9 +126,9 @@ class Mod(commands.Cog):
         role: Role = utils.get(user.roles, name=mute_role)
         if role:
             await user.remove_roles(role)
-            await ctx.send("**{}** was unmuted.".format(user.name))
+            await ctx.send("**{}** was woken up from snooze.".format(user.name))
         else:
-            await ctx.send("This user was never muted.")
+            await ctx.send("This user was never snoozed.")
 
     # Adds the mute role permissions to every channel
     @commands.command(name="addmute")

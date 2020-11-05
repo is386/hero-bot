@@ -31,12 +31,13 @@ class Welcome(commands.Cog):
         await ctx.send("This is now the welcome channel. The message is `@User {}`.".format(msg))
 
     # Sends a welcome message when a user joins the server
-    # TODO: Send no message if the server did not set up a welcome message
     @commands.Cog.listener()
     async def on_member_join(self, member: Member):
         guild: Guild = member.guild
         server_db: Connection = server_database.connect_to_db()
         welcome: List = server_database.select_welcome(server_db, guild.id)
+        if not welcome:
+            return
         chan = guild.get_channel(welcome[0])
         await chan.send("{} {}".format(member.mention, welcome[1]))
 

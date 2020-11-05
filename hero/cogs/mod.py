@@ -21,16 +21,6 @@ class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel: GuildChannel):
-        role: Role = utils.get(channel.guild.roles, name=mute_role)
-        if not role:
-            role = await channel.guild.create_role(name=mute_role)
-        if isinstance(channel, TextChannel):
-            await channel.set_permissions(role, overwrite=text_mute_perms)
-        elif isinstance(channel, VoiceChannel):
-            await channel.set_permissions(role, overwrite=voice_mute_perms)
-
     # Sets the chat to slowmode
     @commands.command(name="slowmode", aliases=["funmode"])
     @commands.has_permissions(manage_channels=True)
@@ -92,6 +82,7 @@ class Mod(commands.Cog):
         else:
             await ctx.send("The ban was cancelled.")
 
+    # Mutes the given user
     @commands.command(name="mute")
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, *args):
@@ -116,6 +107,7 @@ class Mod(commands.Cog):
 
         if confirm_mute:
             role: Role = utils.get(user.guild.roles, name=mute_role)
+            # Creates the role if it doesn't exist
             if not role:
                 role = await user.guild.create_role(name=mute_role)
             await user.add_roles(role)
@@ -123,6 +115,7 @@ class Mod(commands.Cog):
         else:
             await ctx.send("The mute was cancelled.")
 
+    # Unmutes the given user
     @commands.command(name="unmute")
     @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, mention: str):
@@ -136,6 +129,19 @@ class Mod(commands.Cog):
             await ctx.send("**{}** was unmuted.".format(user.name))
         else:
             await ctx.send("This user was never muted.")
+
+    # Adds the mute role permissions to every channel
+    @commands.command(name="addmute")
+    @commands.has_permissions(manage_channels=True)
+    async def addmute(self, ctx):
+        for chan in ctx.guild.channels:
+            await self.add_mute_role(chan)
+        await ctx.send("I added the mute role to all channel permissions.")
+
+    # Adds the muted role every time a new text or voice channel is created
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, channel: GuildChannel):
+        await self.add_mute_role(channel)
 
     @kick.error
     @ban.error
@@ -175,3 +181,13 @@ class Mod(commands.Cog):
             "Press the red button within 20 seconds to {}.".format(inf_type))
         model.set_fields({"Reason": reason})
         return embeds.create_embed(model)
+
+    # Adds the muted role to a channel:
+    async def add_mute_role(self, channel: GuildChannel):
+        role: Role = utils.get(channel.guild.roles, name=mute_role)
+        if not role:
+            role = await channel.guild.create_role(name=mute_role)
+        if isinstance(channel, TextChannel):
+            await channel.set_permissions(role, overwrite=text_mute_perms)
+        elif isinstance(channel, VoiceChannel):
+            await channel.set_permissions(role, overwrite=voice_mute_perms)

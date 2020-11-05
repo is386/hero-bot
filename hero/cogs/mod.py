@@ -1,10 +1,10 @@
-from discord import Embed, Member, Message, utils
-from discord import mentions
+from discord import Embed, Member, Message, utils, Role
 from discord.ext import commands
 from hero.utils import embeds, reactions
 from hero.utils.embed_model import EmbedModel
 
 bad_user: str = "That user does not exist. Did you try pinging the user?"
+mute_role: str = "Snooze"
 
 
 class Mod(commands.Cog):
@@ -84,6 +84,10 @@ class Mod(commands.Cog):
             await ctx.send(bad_user)
             return
 
+        if utils.get(user.roles, name=mute_role):
+            await ctx.send("This user is already muted.")
+            return
+
         reason: str = " ".join(args[1:])
         embed: Embed = self.get_infraction_embed(user, reason, "mute")
         resp: Message = await ctx.send(embed=embed)
@@ -91,20 +95,37 @@ class Mod(commands.Cog):
         confirm_mute: bool = await reactions.confirm(ctx, resp)
 
         if confirm_mute:
-            role = utils.get(user.guild.roles, name="Snoozed")
+            role: Role = utils.get(user.guild.roles, name=mute_role)
             if not role:
-                role = await user.guild.create_role(name="Snoozed")
+                role = await user.guild.create_role(name=mute_role)
             await user.add_roles(role)
             await ctx.send("**{}** was muted for **{}**.".format(user.name, reason))
         else:
             await ctx.send("The mute was cancelled.")
 
+    @commands.command(name="unmute")
+    @commands.has_permissions(manage_roles=True)
+    async def unmute(self, ctx, mention: str):
+        user: Member = self.parse_mention(ctx, mention)
+        if not user:
+            await ctx.send(bad_user)
+            return
+        role: Role = utils.get(user.roles, name=mute_role)
+        if role:
+            await user.remove_roles(role)
+            await ctx.send("**{}** was unmuted.".format(user.name))
+        else:
+            await ctx.send("This user was never muted.")
+
     @kick.error
     @ban.error
     @mute.error
+    @unmute.error
     async def ban_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
         else:
             await ctx.send("They are too powerful...")
 

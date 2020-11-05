@@ -1,4 +1,5 @@
-from discord import Embed, Member, Message
+from discord import Embed, Member, Message, utils
+from discord import mentions
 from discord.ext import commands
 from hero.utils import embeds, reactions
 from hero.utils.embed_model import EmbedModel
@@ -71,8 +72,36 @@ class Mod(commands.Cog):
         else:
             await ctx.send("The ban was cancelled.")
 
+    @commands.command(name="mute")
+    @commands.has_permissions(manage_roles=True)
+    async def mute(self, ctx, *args):
+        if len(args) < 2:
+            await ctx.send("That's not right. The format is `?mute <ping> <reason>`.")
+            return
+
+        user: Member = self.parse_mention(ctx, args[0])
+        if not user:
+            await ctx.send(bad_user)
+            return
+
+        reason: str = " ".join(args[1:])
+        embed: Embed = self.get_infraction_embed(user, reason, "mute")
+        resp: Message = await ctx.send(embed=embed)
+        # Waits for a mod to confirm their choice before muting
+        confirm_mute: bool = await reactions.confirm(ctx, resp)
+
+        if confirm_mute:
+            role = utils.get(user.guild.roles, name="Snoozed")
+            if not role:
+                role = await user.guild.create_role(name="Snoozed")
+            await user.add_roles(role)
+            await ctx.send("**{}** was muted for **{}**.".format(user.name, reason))
+        else:
+            await ctx.send("The mute was cancelled.")
+
     @kick.error
     @ban.error
+    @mute.error
     async def ban_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("{} you do not have permission to do that!".format(ctx.author.mention))

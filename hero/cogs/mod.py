@@ -1,15 +1,35 @@
-from discord import Embed, Member, Message, utils, Role
+from discord import Embed, Member, Message, utils, Role,  VoiceChannel, TextChannel, PermissionOverwrite
+from discord.abc import GuildChannel
 from discord.ext import commands
+
 from hero.utils import embeds, reactions
 from hero.utils.embed_model import EmbedModel
 
 bad_user: str = "That user does not exist. Did you try pinging the user?"
 mute_role: str = "Snooze"
+mute_role: str = "Snooze"
+text_mute_perms: PermissionOverwrite = PermissionOverwrite()
+text_mute_perms.send_messages = False
+text_mute_perms.send_tts_messages = False
+text_mute_perms.attach_files = False
+text_mute_perms.add_reactions = False
+voice_mute_perms: PermissionOverwrite = PermissionOverwrite()
+voice_mute_perms.connect = False
 
 
 class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, channel: GuildChannel):
+        role: Role = utils.get(channel.guild.roles, name=mute_role)
+        if not role:
+            role = await channel.guild.create_role(name=mute_role)
+        if isinstance(channel, TextChannel):
+            await channel.set_permissions(role, overwrite=text_mute_perms)
+        elif isinstance(channel, VoiceChannel):
+            await channel.set_permissions(role, overwrite=voice_mute_perms)
 
     # Sets the chat to slowmode
     @commands.command(name="slowmode", aliases=["funmode"])

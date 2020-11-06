@@ -59,7 +59,7 @@ class Mod(commands.Cog):
         user, reason, confirm = await self.prep_infraction(ctx, args, "kick")
         if confirm:
             await user.kick(reason=reason)
-            await ctx.send("**{}** was kicked for **{}**.".format(user.name, reason))
+            await user.send("You have been **kicked** from **{}** for the following reason:\n> {}".format(ctx.guild.name, reason))
             db: Connection = history_database.connect_to_db()
             history_database.insert_infraction(
                 db, user.id, ctx.author.id, "kick", reason)
@@ -74,6 +74,7 @@ class Mod(commands.Cog):
         if confirm:
             await user.ban(reason=reason)
             await ctx.send("**{}** was banned for **{}**.".format(user.name, reason))
+            await user.send("You have been **banned** from **{}** for the following reason:\n> {}".format(ctx.guild.name, reason))
             db: Connection = history_database.connect_to_db()
             history_database.insert_infraction(
                 db, user.id, ctx.author.id, "ban", reason)
@@ -87,6 +88,7 @@ class Mod(commands.Cog):
         user, reason, confirm = await self.prep_infraction(ctx, args, "warn")
         if confirm:
             await ctx.send("**{}** was warned for **{}**.".format(user.name, reason))
+            await user.send("You have been **warned** in **{}** for the following reason:\n> {}".format(ctx.guild.name, reason))
             db: Connection = history_database.connect_to_db()
             history_database.insert_infraction(
                 db, user.id, ctx.author.id, "warn", reason)
@@ -108,6 +110,7 @@ class Mod(commands.Cog):
                 role = await user.guild.create_role(name=mute_role)
             await user.add_roles(role)
             await ctx.send("**{}** was snoozed for **{}**.".format(user.name, reason))
+            await user.send("You have been **muted** in **{}** for the following reason:\n> {}".format(ctx.guild.name, reason))
             db: Connection = history_database.connect_to_db()
             history_database.insert_infraction(
                 db, user.id, ctx.author.id, "mute", reason)

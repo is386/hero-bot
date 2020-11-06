@@ -12,6 +12,7 @@ def init_db() -> Connection:
         CREATE TABLE IF NOT EXISTS "history" (
                 "id"    INTEGER NOT NULL UNIQUE,
                 "user"  INTEGER,
+                "mod" INTEGER,
                 "infraction"  TEXT,
                 "reason"      TEXT,
                 "date"       DEFAULT CURRENT_TIMESTAMP,
@@ -31,7 +32,7 @@ def connect_to_db() -> Connection:
 def select_history(db: Connection, user: int) -> List:
     c: Cursor = db.cursor()
     c = db.execute(
-        "SELECT user, infraction, reason, date FROM history WHERE user=?", (user,))
+        "SELECT user, mod, infraction, reason, date FROM history WHERE user=?", (user,))
     rows: List = c.fetchall()
     if len(rows) == 0:
         return 0
@@ -39,11 +40,11 @@ def select_history(db: Connection, user: int) -> List:
 
 
 # Inserts the medal count of a user
-def insert_infraction(db: Connection, user: int, infraction: str, reason: str):
+def insert_infraction(db: Connection, user: int, mod: int, infraction: str, reason: str):
     db.execute("""
         INSERT INTO
-            history (user, infraction, reason)
+            history (user, mod, infraction, reason)
         VALUES
-            (?, ?, ?)
-    """, (user, infraction, reason))
+            (?, ?, ?, ?)
+    """, (user, mod, infraction, reason))
     db.commit()

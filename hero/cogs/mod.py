@@ -1,8 +1,7 @@
-from hero.utils.embeds import create_embed
 from typing import List
 from sqlite3 import Connection
 
-from discord import Embed, Member, Message, utils, Role,  VoiceChannel, TextChannel, PermissionOverwrite
+from discord import Embed, Member, Message, utils, Role,  VoiceChannel, TextChannel, PermissionOverwrite, User
 from discord.abc import GuildChannel
 from discord.ext import commands
 
@@ -62,7 +61,8 @@ class Mod(commands.Cog):
             await user.kick(reason=reason)
             await ctx.send("**{}** was kicked for **{}**.".format(user.name, reason))
             db: Connection = history_database.connect_to_db()
-            history_database.insert_infraction(db, user.id, "kick", reason)
+            history_database.insert_infraction(
+                db, user.id, ctx.author.id, "kick", reason)
         elif user and not confirm:
             await ctx.send("The kick was cancelled.")
 
@@ -75,7 +75,8 @@ class Mod(commands.Cog):
             await user.ban(reason=reason)
             await ctx.send("**{}** was banned for **{}**.".format(user.name, reason))
             db: Connection = history_database.connect_to_db()
-            history_database.insert_infraction(db, user.id, "ban", reason)
+            history_database.insert_infraction(
+                db, user.id, ctx.author.id, "ban", reason)
         elif user and not confirm:
             await ctx.send("The ban was cancelled.")
 
@@ -87,7 +88,8 @@ class Mod(commands.Cog):
         if confirm:
             await ctx.send("**{}** was warned for **{}**.".format(user.name, reason))
             db: Connection = history_database.connect_to_db()
-            history_database.insert_infraction(db, user.id, "warn", reason)
+            history_database.insert_infraction(
+                db, user.id, ctx.author.id, "warn", reason)
         elif user and not confirm:
             await ctx.send("The warn was cancelled.")
 
@@ -107,7 +109,8 @@ class Mod(commands.Cog):
             await user.add_roles(role)
             await ctx.send("**{}** was snoozed for **{}**.".format(user.name, reason))
             db: Connection = history_database.connect_to_db()
-            history_database.insert_infraction(db, user.id, "mute", reason)
+            history_database.insert_infraction(
+                db, user.id, ctx.author.id, "mute", reason)
         elif user and not confirm:
             await ctx.send("Snooze missed.")
 
@@ -178,11 +181,13 @@ class Mod(commands.Cog):
     def get_history_embed(self, user: Member, infractions: List) -> Embed:
         model: EmbedModel = EmbedModel("history")
         model.set_title("Infraction History for {}".format(user.name))
-        model.set_description("ID: {}".format(user.id))
+        model.set_description("**ID:** {}".format(user.id))
         model.set_thumbnail(user.avatar_url)
         for inf in infractions:
-            field: str = inf[1].upper()
-            value: str = "Date: {}\nReason: {}".format(inf[3], inf[2])
+            mod: User = self.bot.get_user(inf[1])
+            field: str = inf[2].upper()
+            value: str = "Mod: {}\nReason: {}\nDate: {}".format(
+                mod.name, inf[3], inf[4])
             model.add_field(field, value)
         return embeds.create_embed(model)
 

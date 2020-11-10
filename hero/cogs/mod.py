@@ -186,9 +186,9 @@ class Mod(commands.Cog):
         model.set_title("Infraction History for {}".format(user.name))
         model.set_description("**ID:** {}".format(user.id))
         model.set_thumbnail(user.avatar_url)
-        for inf in infractions:
+        for i, inf in enumerate(infractions):
             mod: User = self.bot.get_user(inf[1])
-            field: str = inf[2].upper()
+            field: str = "{}. {}".format(i + 1, inf[2].upper())
             value: str = "Mod: {}\nReason: {}\nDate: {}".format(
                 mod.name, inf[3], inf[4])
             model.add_field(field, value)

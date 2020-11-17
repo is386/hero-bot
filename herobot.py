@@ -56,6 +56,12 @@ async def on_message(msg: Message):
     await bot.process_commands(msg)
 
 
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    raise error
+
 if not path.exists("./databases"):
     mkdir("./databases")
 

@@ -237,27 +237,40 @@ def insert_embed_cmd(embed: EmbedModel, db: Connection):
 # Updates an embed command given its embed model
 def update_embed_cmd(embed: EmbedModel, db: Connection):
     cmd_id: int = select_cmd_id(embed.name, db)
-    db.execute("""
-        UPDATE
-            embed_commands
-        SET
-            title=?, description=?, footer=?, thumbnail=?, image=?
-        WHERE
-            cmd_id=?
-    """, (embed.title, embed.description, embed.footer, embed.thumbnail, embed.image, cmd_id))
-    db.commit()
+    if embed.title:
+        db.execute(
+            """UPDATE embed_commands SET title=? WHERE cmd_id=?""", (embed.title, cmd_id))
+        db.commit()
+    if embed.description:
+        db.execute(
+            """UPDATE embed_commands SET description=? WHERE cmd_id=?""", (embed.description, cmd_id))
+        db.commit()
+    if embed.footer:
+        db.execute(
+            """UPDATE embed_commands SET footer=? WHERE cmd_id=?""", (embed.footer, cmd_id))
+        db.commit()
+    if embed.thumbnail:
+        db.execute(
+            """UPDATE embed_commands SET thumbnail=? WHERE cmd_id=?""", (embed.thumbnail, cmd_id))
+        db.commit()
+    if embed.image:
+        db.execute(
+            """UPDATE embed_commands SET image=? WHERE cmd_id=?""", (embed.image, cmd_id))
+        db.commit()
+
+    # Fields that currently exist for this command
+    fields: dict = select_embed_fields(cmd_id, db)
 
     # Updates the fields of the embed into a separate table
     for f in embed.fields.keys():
-        db.execute("""
-            UPDATE
-                embed_fields
-            SET
-                name=?, value=?
-            WHERE
-                embed_id=?
-        """, (f, embed.fields[f], cmd_id))
-    db.commit()
+        # If the field exists, update, else insert it because its a new field
+        if f in fields.keys():
+            db.execute("""UPDATE embed_fields SET name=?, value=? WHERE embed_id=? AND name=?""",
+                       (f, embed.fields[f], cmd_id, f))
+        else:
+            db.execute("""INSERT INTO embed_fields(embed_id, name, value) VALUES (?, ?, ?) """,
+                       (cmd_id, f, embed.fields[f]))
+        db.commit()
 
 
 # Removes an embed command and its fields from the db

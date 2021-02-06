@@ -12,7 +12,7 @@ from hero.utils.embed_model import EmbedModel
 meme_path: str = "databases/memes"
 heads: str = "https://i.imgur.com/dTNbMle.png"
 tails: str = "https://i.imgur.com/Suza17V.png"
-add_meme_msg: str = "I added this new meme"
+meme_msg: str = "I {} this new meme"
 dbz_gif: str = "https://media.tenor.com/images/f1d0693271bdf3259481a1e54d184673/tenor.gif"
 hero_time_vid: str = "https://cdn.discordapp.com/attachments/509819835874541570/761054332652879932/video0.mp4"
 
@@ -28,18 +28,35 @@ class Fun(commands.Cog):
     async def add_meme(self, ctx: commands.Context, meme_link: str):
         if url.is_image(meme_link):
             with open(meme_path, "a") as f:
-                f.write("\n" + meme_link)
-            embed_model: EmbedModel = EmbedModel("NewMeme")
-            embed_model.set_image(meme_link)
-            embed: Embed = embeds.create_embed(embed_model)
-            await ctx.send(embed=embed)
-            await ctx.send(add_meme_msg)
+                f.write(meme_link + "\n")
+            await self.send_meme(ctx, meme_link)
+            await ctx.send(meme_msg.format("added"))
+        else:
+            await ctx.send("That is not a valid image url.")
+
+    @commands.command(name="removememe")
+    @commands.has_permissions(ban_members=True)
+    async def remove_meme(self, ctx: commands.Context, meme_link: str):
+        if url.is_image(meme_link):
+            found = False
+            with open(meme_path, "r") as f:
+                memes = f.readlines()
+            with open(meme_path, "w") as f:
+                for meme in memes:
+                    if meme.strip("\n") != meme_link and len(meme) > 0:
+                        f.write(meme)
+                    else:
+                        found = True
+                        await self.send_meme(ctx, meme_link)
+                        await ctx.send(meme_msg.format("removed"))
+            if not found:
+                await ctx.send("I did not find that meme. You need the exact link.")
         else:
             await ctx.send("That is not a valid image url.")
 
     # Sends a random meme from the memes file
     @commands.command(name="meme")
-    async def send_meme(self, ctx: commands.Context):
+    async def meme(self, ctx: commands.Context):
         if not path.exists(meme_path):
             open(meme_path, "w+")
         with open(meme_path, "r") as f:
@@ -49,10 +66,7 @@ class Fun(commands.Cog):
             except:
                 await ctx.send("There are no memes")
                 return
-        model: EmbedModel = EmbedModel("meme")
-        model.set_image(meme)
-        embed: Embed = embeds.create_embed(model)
-        await ctx.send(embed=embed)
+        await self.send_meme(ctx, meme)
 
     # Flips a coin
     @commands.command(name="coin")
@@ -97,13 +111,19 @@ class Fun(commands.Cog):
         else:
             await ctx.send("That is not a number.")
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=1)
     async def hero_time(self):
         now = datetime.now()
-        if now.hour == 22 and now.minute == 38:
-            chan = self.bot.get_channel(509819835874541570)
+        if now.hour == 22 and now.minute == 3 and now.second == 0:
+            chan = self.bot.get_channel(600471466152296469)
             await chan.send("**IT'S HERO TIME\n**{}".format(hero_time_vid))
 
     @hero_time.before_loop
     async def before_hero_time(self):
         await self.bot.wait_until_ready()
+
+    async def send_meme(self, ctx: commands.Context, meme_link: str):
+        embed_model: EmbedModel = EmbedModel("meme")
+        embed_model.set_image(meme_link)
+        embed: Embed = embeds.create_embed(embed_model)
+        await ctx.send(embed=embed)

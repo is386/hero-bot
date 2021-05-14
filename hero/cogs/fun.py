@@ -12,7 +12,7 @@ from hero.utils.embed_model import EmbedModel
 meme_path: str = "databases/memes"
 heads: str = "https://i.imgur.com/dTNbMle.png"
 tails: str = "https://i.imgur.com/Suza17V.png"
-meme_msg: str = "I {} this new meme"
+meme_msg: str = "I {} this meme."
 dbz_gif: str = "https://media.tenor.com/images/f1d0693271bdf3259481a1e54d184673/tenor.gif"
 hero_time_vid: str = "https://cdn.discordapp.com/attachments/509819835874541570/761054332652879932/video0.mp4"
 
@@ -28,7 +28,7 @@ class Fun(commands.Cog):
     async def add_meme(self, ctx: commands.Context, meme_link: str):
         if url.is_image(meme_link):
             with open(meme_path, "a") as f:
-                f.write(meme_link + "\n")
+                f.write("\n" + meme_link)
             await self.send_meme(ctx, meme_link)
             await ctx.send(meme_msg.format("added"))
         else:
@@ -115,7 +115,7 @@ class Fun(commands.Cog):
     async def hero_time(self):
         now = datetime.now()
         if now.hour == 5 and now.minute == 38 and now.second == 0:
-            chan = self.bot.get_channel(600471466152296469)
+            chan = self.bot.get_channel(509819835874541570)
             await chan.send("**IT'S HERO TIME\n**{}".format(hero_time_vid))
 
     @hero_time.before_loop

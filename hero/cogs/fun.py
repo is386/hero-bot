@@ -114,7 +114,7 @@ class Fun(commands.Cog):
     @tasks.loop(seconds=1)
     async def hero_time(self):
         now = datetime.now()
-        if now.hour == 22 and now.minute == 3 and now.second == 0:
+        if now.hour == 5 and now.minute == 38 and now.second == 0:
             chan = self.bot.get_channel(600471466152296469)
             await chan.send("**IT'S HERO TIME\n**{}".format(hero_time_vid))
 

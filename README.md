@@ -1,4 +1,4 @@
-# Hero Bot
+# hero-bot
 
 This is a Discord bot written in Python for the Hero Smashcord server. It handles moderation, hands out mini
 medals, keeps track of the server's boosters, posts memes and combo gifs, and lets admins add their own

@@ -77,12 +77,15 @@ the welcome messages.
 
 ### Python Dependencies
 
-- `discord.py 1.5.0`
+- `discord.py`
 - `requests`
 
-Note: The `requirements.txt` in this repo is a full freeze of the machine it was written on, so it has a lot
-more in it than the bot actually uses.
+To use the `requirements.txt` file, just run `pip3 install -r requirements.txt`.
+
+## Build
+
+`docker build -t herobot .`
 
 ## Run
 
-`python3 herobot.py`
+`docker run --rm -d herobot`
